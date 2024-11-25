@@ -10,7 +10,13 @@
   <h1>Upload Music</h1>
   <form action="/music/upload" method="POST" enctype="multipart/form-data">
     <input type="file" name="file" accept=".mp3" required>
-    <input type="text" name="type" placeholder="Type" required>
+    <select name="type" required>
+      <option value="rain">Rain</option>
+      <option value="ocean">Ocean</option>
+      <option value="forest">Forest</option>
+      <option value="ambient">Ambient</option>
+      <option value="music">Music</option>
+    </select>
     <textarea name="description" placeholder="Description"></textarea>
     <button type="submit">Upload</button>
   </form>

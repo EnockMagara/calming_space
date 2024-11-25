@@ -10,12 +10,12 @@
   <h1>Welcome to Your Calming Space, <%= username %>!</h1>
   <div>
     <h2>Adjust Ambient Sounds</h2>
-    <label for="rain">Rain</label>
-    <input type="range" id="rain" name="rain" min="0" max="100">
-    <label for="ocean">Ocean</label>
-    <input type="range" id="ocean" name="ocean" min="0" max="100">
-    <label for="forest">Forest</label>
-    <input type="range" id="forest" name="forest" min="0" max="100">
+    <% musicList.forEach((music) => { %>
+      <% if (music.type !== 'music') { %>
+        <label for="<%= music.type %>"><%= music.type.charAt(0).toUpperCase() + music.type.slice(1) %></label>
+        <input type="range" id="<%= music.type %>" name="<%= music.type %>" min="0" max="100" value="0" data-filename="<%= music.filename %>">
+      <% } %>
+    <% }) %>
   </div>
   <div>
     <h2>Share Kindness</h2>
@@ -30,31 +30,45 @@
   <% } %>
   <div>
     <h2>Available Music</h2>
-    <ul>
-      <li><a href="/music/stream/<%= encodeURIComponent('lofigenerator.com - Generated Beats - Volume 1 - 49 49.mp3') %>">Stream Track 49</a></li>
-      <li><a href="/music/stream/lofigenerator.com%20-%20Generated%20Beats%20-%20Volume%201%20-%2048%2048.mp3">Stream Track 48</a></li>
-      <!-- Add more tracks as needed -->
-    </ul>
+    <% musicList.forEach((music, index) => { %>
+      <% if (music.type === 'music') { %>
+        <div class="track">
+          <strong>Track <%= index + 1 %>:</strong>
+          <input type="range" class="volumeSlider" min="0" max="100" value="0" data-filename="<%= music.filename %>">
+        </div>
+      <% } %>
+    <% }) %>
   </div>
+  <button id="playAllButton">Play All</button>
   <form action="/logout" method="POST">
     <button type="submit">Logout</button>
   </form>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      const rainSlider = document.getElementById('rain');
-      const oceanSlider = document.getElementById('ocean');
-      const forestSlider = document.getElementById('forest');
+      const audioElements = {};
 
-      function adjustSound(slider, sound) {
+      // Initialize audio elements for all sounds
+      document.querySelectorAll('input[type="range"]').forEach(slider => {
+        const filename = slider.getAttribute('data-filename');
+        if (!audioElements[filename]) {
+          const audio = new Audio(`/music/stream/${encodeURIComponent(filename)}`);
+          audio.volume = 0; // Start with volume zero
+          audio.loop = true; // Enable looping for the audio
+          audioElements[filename] = audio;
+        }
+
         slider.addEventListener('input', () => {
           const volume = slider.value / 100;
-          document.getElementById(`${sound}Sound`).volume = volume;
+          audioElements[filename].volume = volume;
         });
-      }
+      });
 
-      adjustSound(rainSlider, 'rain');
-      adjustSound(oceanSlider, 'ocean');
-      adjustSound(forestSlider, 'forest');
+      // Play all sounds with a single button
+      document.getElementById('playAllButton').addEventListener('click', () => {
+        Object.values(audioElements).forEach(audio => {
+          audio.play();
+        });
+      });
 
       // Fetch and display a random kind message
       fetch('/api/random-message')
