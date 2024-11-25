@@ -6,46 +6,82 @@
   <title>Dashboard</title>
   <link rel="stylesheet" href="/styles.css">
 </head>
-<body>
-  <h1>Welcome to Your Calming Space, <%= username %>!</h1>
-  <div>
-    <h2>Adjust Ambient Sounds</h2>
-    <% musicList.forEach((music) => { %>
-      <% if (music.type !== 'music') { %>
-        <label for="<%= music.type %>"><%= music.type.charAt(0).toUpperCase() + music.type.slice(1) %></label>
-        <input type="range" id="<%= music.type %>" name="<%= music.type %>" min="0" max="100" value="0" data-filename="<%= music.filename %>">
-      <% } %>
-    <% }) %>
-  </div>
-  <div>
-    <h2>Share Kindness</h2>
-    <input type="text" id="kindMessage" placeholder="Share a kind message">
-    <button id="shareButton">Share</button>
-  </div>
-  <% if (userRole === 'admin') { %>
-    <div>
-      <h2>Admin Actions</h2>
-      <a href="/music/upload">Upload Music</a>
+<body class="dashboard">
+  <header class="header">
+    <h1 class="title">Welcome to Your Calming Space, <%= username %>!</h1>
+  </header>
+  <main class="main-content">
+    <section class="ambient-sounds">
+      <h2>Adjust Ambient Sounds</h2>
+      <div class="sound-controls">
+        <% musicList.forEach((music) => { %>
+          <% if (music.type !== 'music') { %>
+            <div class="sound-control">
+              <label for="<%= music.type %>"><%= music.type.charAt(0).toUpperCase() + music.type.slice(1) %></label>
+              <input type="range" id="<%= music.type %>" name="<%= music.type %>" min="0" max="100" value="0" data-filename="<%= music.filename %>">
+            </div>
+          <% } %>
+        <% }) %>
+      </div>
+    </section>
+    <section class="kindness-share">
+      <h2>Share Kindness</h2>
+      <input type="text" id="kindMessage" placeholder="Share a kind message">
+      <button id="shareButton">Share</button>
+    </section>
+    <% if (userRole === 'admin') { %>
+      <section class="admin-actions">
+        <h2>Admin Actions</h2>
+        <a href="/music/upload">Upload Music and Approve Messages</a>
+      </section>
+    <% } %>
+    <section class="available-music">
+      <h2>Available Music</h2>
+      <div class="music-tracks">
+        <% musicList.forEach((music, index) => { %>
+          <% if (music.type === 'music') { %>
+            <div class="track">
+              <strong>Track <%= index + 1 %>:</strong>
+              <input type="range" class="volumeSlider" min="0" max="100" value="0" data-filename="<%= music.filename %>">
+            </div>
+          <% } %>
+        <% }) %>
+      </div>
+    </section>
+    <div class="controls">
+      <button id="togglePlayButton">Play All</button>
+      <button id="muteButton">Mute All</button>
     </div>
-  <% } %>
-  <div>
-    <h2>Available Music</h2>
-    <% musicList.forEach((music, index) => { %>
-      <% if (music.type === 'music') { %>
-        <div class="track">
-          <strong>Track <%= index + 1 %>:</strong>
-          <input type="range" class="volumeSlider" min="0" max="100" value="0" data-filename="<%= music.filename %>">
-        </div>
-      <% } %>
-    <% }) %>
-  </div>
-  <button id="playAllButton">Play All</button>
-  <form action="/logout" method="POST">
-    <button type="submit">Logout</button>
-  </form>
+    <form action="/logout" method="POST" class="logout-form">
+      <button type="submit">Logout</button>
+    </form>
+    <div id="quotesContainer" class="quotes-container"></div>
+  </main>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const audioElements = {};
+      let isPlaying = false; // Track play state
+      let isMuted = false; // Track mute state
+
+      // Function to fetch and display quotes
+      const fetchAndDisplayQuotes = () => {
+        fetch('/api/random-quotes')
+          .then(response => response.json())
+          .then(quotes => {
+            const quotesContainer = document.getElementById('quotesContainer');
+            quotesContainer.innerHTML = ''; // Clear previous quotes
+            quotes.slice(0, 3).forEach(quote => { // Display up to 3 quotes
+              const quoteElement = document.createElement('p');
+              quoteElement.innerHTML = `<strong>${quote.q}</strong> - ${quote.a}`;
+              quotesContainer.appendChild(quoteElement);
+            });
+          })
+          .catch(error => console.error('Error fetching quotes:', error));
+      };
+
+      // Fetch quotes every minute
+      fetchAndDisplayQuotes(); // Initial fetch
+      setInterval(fetchAndDisplayQuotes, 60000); // Fetch every 60 seconds
 
       // Initialize audio elements for all sounds
       document.querySelectorAll('input[type="range"]').forEach(slider => {
@@ -63,11 +99,30 @@
         });
       });
 
-      // Play all sounds with a single button
-      document.getElementById('playAllButton').addEventListener('click', () => {
+      // Toggle play/stop for all sounds
+      document.getElementById('togglePlayButton').addEventListener('click', () => {
+        if (isPlaying) {
+          Object.values(audioElements).forEach(audio => {
+            audio.pause(); // Pause all audio
+            audio.currentTime = 0; // Reset to start
+          });
+          document.getElementById('togglePlayButton').textContent = 'Play All';
+        } else {
+          Object.values(audioElements).forEach(audio => {
+            audio.play(); // Play all audio
+          });
+          document.getElementById('togglePlayButton').textContent = 'Stop All';
+        }
+        isPlaying = !isPlaying; // Toggle play state
+      });
+
+      // Mute/unmute all sounds
+      document.getElementById('muteButton').addEventListener('click', () => {
+        isMuted = !isMuted; // Toggle mute state
         Object.values(audioElements).forEach(audio => {
-          audio.play();
+          audio.muted = isMuted; // Set mute state
         });
+        document.getElementById('muteButton').textContent = isMuted ? 'Unmute All' : 'Mute All';
       });
 
       // Fetch and display a random kind message

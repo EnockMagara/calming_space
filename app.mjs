@@ -10,6 +10,7 @@ import dashboardRoutes from './src/routes/dashboard.mjs';
 import musicRoutes from './src/routes/music.mjs';
 import { gfs, upload } from './src/config/gridfs.mjs';
 import messagesRoutes from './src/routes/messages.mjs';
+import adminRoutes from './src/routes/admin.mjs';
 
 // Load environment variables
 dotenv.config();
@@ -40,6 +41,7 @@ app.use('/', authRoutes);
 app.use('/', dashboardRoutes);
 app.use('/music', musicRoutes);
 app.use('/api', messagesRoutes);
+app.use('/admin', adminRoutes);
 
 // Define root route
 app.get('/', (req, res) => {

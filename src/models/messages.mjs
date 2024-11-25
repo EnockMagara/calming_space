@@ -13,6 +13,10 @@ const messageSchema = new mongoose.Schema({
     ref: 'User',                          // Reference to the User collection
     required: true                        // Field is required
   },
+  approved: {
+    type: Boolean,      // Approval status
+    default: false      // Default not approved
+  },
   createdAt: {
     type: Date,         // Data type is Date
     default: Date.now   // Default value is current date
