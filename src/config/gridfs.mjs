@@ -11,6 +11,7 @@ dotenv.config();
 let gfs;
 const conn = mongoose.connection;
 conn.once('open', () => {
+  console.log('GridFS connection open');
   gfs = gridfsStream(conn.db, mongoose.mongo);
   gfs.collection('musics'); // Set the collection to store files
 });

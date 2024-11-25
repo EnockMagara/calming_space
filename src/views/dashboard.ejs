@@ -28,6 +28,14 @@
       <a href="/music/upload">Upload Music</a>
     </div>
   <% } %>
+  <div>
+    <h2>Available Music</h2>
+    <ul>
+      <li><a href="/music/stream/<%= encodeURIComponent('lofigenerator.com - Generated Beats - Volume 1 - 49 49.mp3') %>">Stream Track 49</a></li>
+      <li><a href="/music/stream/lofigenerator.com%20-%20Generated%20Beats%20-%20Volume%201%20-%2048%2048.mp3">Stream Track 48</a></li>
+      <!-- Add more tracks as needed -->
+    </ul>
+  </div>
   <form action="/logout" method="POST">
     <button type="submit">Logout</button>
   </form>
