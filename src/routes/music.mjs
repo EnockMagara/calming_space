@@ -82,4 +82,36 @@ router.get('/stream/:filename', (req, res) => {
   });
 });
 
+// Route to rename a track or ambient sound
+router.post('/rename/:id', checkAdmin, async (req, res) => {
+  const { id } = req.params;
+  const { newName } = req.body;
+  try {
+    const music = await Music.findById(id);
+    if (!music) return res.status(404).json({ success: false, message: 'Item not found.' });
+
+    music.filename = newName;
+    await music.save();
+    res.json({ success: true, message: 'Item renamed successfully!' });
+  } catch (error) {
+    console.error('Rename error:', error);
+    res.status(500).json({ success: false, message: 'Failed to rename item.' });
+  }
+});
+
+// Route to delete a track or ambient sound
+router.delete('/delete/:id', checkAdmin, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const music = await Music.findByIdAndDelete(id);
+    if (!music) return res.status(404).json({ success: false, message: 'Item not found.' });
+
+    fs.unlinkSync(path.join(__dirname, '../../public/audio', music.filename));
+    res.json({ success: true, message: 'Item deleted successfully!' });
+  } catch (error) {
+    console.error('Delete error:', error);
+    res.status(500).json({ success: false, message: 'Failed to delete item.' });
+  }
+});
+
 export default router;

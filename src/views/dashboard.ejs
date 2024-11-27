@@ -5,29 +5,35 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard</title>
   <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body class="dashboard">
+  <div id="animated-message" class="animated-message"></div>
+  <div id="backgroundQuote" class="background-quote"></div>
   <header class="header">
     <h1 class="title">Welcome to Your Calming Space, <%= username %>!</h1>
+    <form action="/logout" method="POST" class="logout-form">
+      <button type="submit">Logout</button>
+    </form>
   </header>
   <main class="main-content">
-    <section class="ambient-sounds">
+    <section class="ambient-sounds card">
       <h2>Adjust Ambient Sounds</h2>
       <div class="sound-controls">
         <% musicList.forEach((music) => { %>
           <% if (music.type !== 'music') { %>
-            <div class="sound-control">
+            <div class="sound-control" id="sound-<%= music._id %>">
               <label for="<%= music.type %>"><%= music.type.charAt(0).toUpperCase() + music.type.slice(1) %></label>
               <input type="range" id="<%= music.type %>" name="<%= music.type %>" min="0" max="100" value="0" data-filename="<%= music.filename %>">
+              <% if (userRole === 'admin') { %>
+                <input type="text" value="<%= music.filename %>" class="track-name" data-id="<%= music._id %>">
+                <button class="rename-button" data-id="<%= music._id %>">Rename</button>
+                <button class="delete-button" data-id="<%= music._id %>">Delete</button>
+              <% } %>
             </div>
           <% } %>
         <% }) %>
       </div>
-    </section>
-    <section class="kindness-share">
-      <h2>Share Kindness</h2>
-      <input type="text" id="kindMessage" placeholder="Share a kind message">
-      <button id="shareButton">Share</button>
     </section>
     <% if (userRole === 'admin') { %>
       <section class="admin-actions">
@@ -38,30 +44,62 @@
     <section class="available-music">
       <h2>Available Music</h2>
       <div class="music-tracks">
-        <% musicList.forEach((music, index) => { %>
+        <% let musicIndex = 1; %>
+        <% musicList.forEach((music) => { %>
           <% if (music.type === 'music') { %>
-            <div class="track">
-              <strong>Track <%= index + 1 %>:</strong>
+            <div class="track" id="track-<%= music._id %>">
+              <strong>Track <%= musicIndex %>:</strong>
               <input type="range" class="volumeSlider" min="0" max="100" value="0" data-filename="<%= music.filename %>">
+              <% if (userRole === 'admin') { %>
+                <input type="text" value="<%= music.filename %>" class="track-name" data-id="<%= music._id %>">
+                <button class="rename-button" data-id="<%= music._id %>">Rename</button>
+                <button class="delete-button" data-id="<%= music._id %>">Delete</button>
+              <% } %>
             </div>
+            <% musicIndex++; %>
           <% } %>
         <% }) %>
       </div>
     </section>
     <div class="controls">
-      <button id="togglePlayButton">Play All</button>
-      <button id="muteButton">Mute All</button>
+      <button id="togglePlayButton" class="icon-button">
+        <i class="fas fa-play"></i>
+      </button>
     </div>
-    <form action="/logout" method="POST" class="logout-form">
-      <button type="submit">Logout</button>
-    </form>
+
+    <section class="mindfulness-timer card">
+      <h2>Mindfulness Timer</h2>
+      <div class="pie-chart" id="pie-chart"></div>
+      <div class="timer-display" id="timer-display">10:00</div>
+      <div class="duration-input">
+        <input type="number" id="mindfulness-duration" placeholder="Duration (min)" min="1" value="10">
+        <button id="set-duration-button">Set Duration</button>
+      </div>
+      <div class="buttons">
+        <button id="start-button">Start</button>
+        <button id="pause-button">Pause</button>
+        <button id="stop-button">Stop</button>
+      </div>
+      <div class="message" id="message"></div>
+    </section>
+  </main>
+
+  <div class="page-separator"></div>
+
+  <main class="main-content">
     <div id="quotesContainer" class="quotes-container"></div>
+    <section class="kindness-share card">
+      <h2>Share Kindness</h2>
+      <div class="kindness-controls">
+        <input type="text" id="kindMessage" placeholder="Share a kind message">
+        <button id="shareButton">Share</button>
+      </div>
+    </section>
   </main>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      const audioElements = {};
+      const audioElements = {}; // Object to store audio elements
       let isPlaying = false; // Track play state
-      let isMuted = false; // Track mute state
 
       // Function to fetch and display quotes
       const fetchAndDisplayQuotes = () => {
@@ -103,36 +141,31 @@
       document.getElementById('togglePlayButton').addEventListener('click', () => {
         if (isPlaying) {
           Object.values(audioElements).forEach(audio => {
-            audio.pause(); // Pause all audio
-            audio.currentTime = 0; // Reset to start
+            audio.pause();
+            audio.currentTime = 0;
           });
-          document.getElementById('togglePlayButton').textContent = 'Play All';
+          document.querySelector('#togglePlayButton i').classList.replace('fa-pause', 'fa-play');
         } else {
           Object.values(audioElements).forEach(audio => {
-            audio.play(); // Play all audio
+            audio.play();
           });
-          document.getElementById('togglePlayButton').textContent = 'Stop All';
+          document.querySelector('#togglePlayButton i').classList.replace('fa-play', 'fa-pause');
         }
-        isPlaying = !isPlaying; // Toggle play state
+        isPlaying = !isPlaying;
       });
 
-      // Mute/unmute all sounds
-      document.getElementById('muteButton').addEventListener('click', () => {
-        isMuted = !isMuted; // Toggle mute state
-        Object.values(audioElements).forEach(audio => {
-          audio.muted = isMuted; // Set mute state
-        });
-        document.getElementById('muteButton').textContent = isMuted ? 'Unmute All' : 'Mute All';
-      });
+      const kindMessageContainer = document.createElement('div');
+      kindMessageContainer.id = 'kindMessageContainer';
+      kindMessageContainer.className = 'kind-message';
+      document.body.appendChild(kindMessageContainer);
 
       // Fetch and display a random kind message
       fetch('/api/random-message')
         .then(response => response.json())
         .then(data => {
           if (data.success) {
-            const greeting = document.createElement('p');
-            greeting.textContent = `Kind Message: ${data.message}`;
-            document.body.appendChild(greeting);
+            kindMessageContainer.textContent = `Kind Message: ${data.message}`;
+            kindMessageContainer.classList.add('show');
           }
         })
         .catch(error => console.error('Error fetching message:', error));
@@ -163,6 +196,141 @@
           }
         })
         .catch(error => console.error('Error:', error));
+      });
+
+      // Timer functionality
+      const timerDisplay = document.getElementById('timer-display');
+      const startButton = document.getElementById('start-button');
+      const pauseButton = document.getElementById('pause-button');
+      const stopButton = document.getElementById('stop-button');
+      const setDurationButton = document.getElementById('set-duration-button');
+      const mindfulnessDurationInput = document.getElementById('mindfulness-duration');
+      const message = document.getElementById('message');
+      const pieChart = document.getElementById('pie-chart');
+
+      let timer;
+      let isRunning = false; // Track if the timer is running
+      let isPaused = false; // Track if the timer is paused
+      let currentDuration = 10 * 60; // Default duration of 10 minutes
+      let totalDuration = currentDuration; // Total duration for the timer
+
+      // Function to format time in mm:ss
+      function formatTime(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+      }
+
+      // Function to update the pie chart based on the timer progress
+      function updatePieChart() {
+        const percentage = ((totalDuration - currentDuration) / totalDuration) * 100;
+        pieChart.style.background = `conic-gradient(#43cea2 ${percentage}%, #185a9d ${percentage}%)`;
+      }
+
+      // Function to start the timer
+      function startTimer() {
+        if (!isRunning && !isPaused) {
+          isRunning = true;
+          timer = setInterval(() => {
+            currentDuration--;
+            timerDisplay.textContent = formatTime(currentDuration);
+            updatePieChart();
+            if (currentDuration <= 0) {
+              clearInterval(timer);
+              isRunning = false;
+              message.textContent = 'Mindfulness session complete!';
+            }
+          }, 1000);
+        } else if (isPaused) {
+          isPaused = false;
+          isRunning = true;
+          timer = setInterval(() => {
+            currentDuration--;
+            timerDisplay.textContent = formatTime(currentDuration);
+            updatePieChart();
+            if (currentDuration <= 0) {
+              clearInterval(timer);
+              isRunning = false;
+              message.textContent = 'Mindfulness session complete!';
+            }
+          }, 1000);
+        }
+      }
+
+      // Function to pause the timer
+      function pauseTimer() {
+        if (isRunning) {
+          clearInterval(timer);
+          isRunning = false;
+          isPaused = true;
+        }
+      }
+
+      // Function to stop the timer
+      function stopTimer() {
+        clearInterval(timer);
+        isRunning = false;
+        isPaused = false;
+        currentDuration = parseInt(mindfulnessDurationInput.value) * 60;
+        totalDuration = currentDuration;
+        timerDisplay.textContent = formatTime(currentDuration);
+        updatePieChart();
+        message.textContent = '';
+      }
+
+      // Function to set the duration of the timer
+      function setDuration() {
+        const duration = parseInt(mindfulnessDurationInput.value);
+        if (!isNaN(duration) && duration > 0) {
+          currentDuration = duration * 60;
+          totalDuration = currentDuration;
+          timerDisplay.textContent = formatTime(currentDuration);
+          updatePieChart();
+        }
+      }
+
+      // Event listeners for timer buttons
+      startButton.addEventListener('click', startTimer);
+      pauseButton.addEventListener('click', pauseTimer);
+      stopButton.addEventListener('click', stopTimer);
+      setDurationButton.addEventListener('click', setDuration);
+
+      // Initialize the timer display and pie chart
+      timerDisplay.textContent = formatTime(currentDuration);
+      updatePieChart();
+
+      // Rename item
+      document.querySelectorAll('.rename-button').forEach(button => {
+        button.addEventListener('click', () => {
+          const id = button.getAttribute('data-id');
+          const newName = document.querySelector(`.track-name[data-id="${id}"]`).value;
+          
+          fetch(`/music/rename/${id}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ newName })
+          })
+          .then(response => response.json())
+          .then(data => alert(data.message))
+          .catch(error => console.error('Error renaming item:', error));
+        });
+      });
+
+      // Delete item
+      document.querySelectorAll('.delete-button').forEach(button => {
+        button.addEventListener('click', () => {
+          const id = button.getAttribute('data-id');
+          
+          fetch(`/music/delete/${id}`, { method: 'DELETE' })
+          .then(response => response.json())
+          .then(data => {
+            alert(data.message);
+            if (data.success) {
+              document.getElementById(`sound-${id}`).remove();
+            }
+          })
+          .catch(error => console.error('Error deleting item:', error));
+        });
       });
     });
   </script>
