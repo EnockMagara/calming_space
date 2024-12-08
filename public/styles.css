@@ -3,8 +3,8 @@ body, input, button {
 }
 
 body {
-  font-family: 'Arial', sans-serif;
-  background-color: #f0f8ff;
+  font-family: 'Roboto', sans-serif;
+  background: linear-gradient(to bottom right, #f0f9ff, #dff6fa);
   color: #333;
   margin: 0;
   padding: 0;
@@ -16,6 +16,39 @@ body {
   padding: 15px;
   background-color: #e0f7fa;
   margin-bottom: 15px;
+}
+
+.header .title {
+  font-size: 2em;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.header a {
+  font-size: 1em;
+  font-weight: 400;
+}
+
+.site-description {
+  height: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  background-color: #e0f7fa;
+  padding: 20px;
+}
+
+h2 {
+  font-size: 1.5em;
+  font-weight: 700;
+  margin-bottom: 15px;
+}
+
+p {
+  font-size: 1em;
+  margin-bottom: 10px;
 }
 
 .main-content {
@@ -97,7 +130,44 @@ button:hover {
 }
 
 input[type="range"] {
+  -webkit-appearance: none;
   width: 100px;
+  height: 8px;
+  background: #ddd;
+  border-radius: 5px;
+  outline: none;
+  transition: background 0.3s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  background: #00796b;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: #00796b;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+input[type="range"]:hover {
+  background: #ccc;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  background: #004d40;
+}
+
+input[type="range"]::-moz-range-thumb:hover {
+  background: #004d40;
 }
 
 .kindness-share {
@@ -150,10 +220,13 @@ input[type="range"] {
   border-radius: 40px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   margin: 10px;
-  padding: 15px;
+  padding: 25px;
   width: 80%;
   max-width: 300px;
   transition: transform 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .mindfulness-timer:hover {
@@ -164,6 +237,7 @@ input[type="range"] {
   font-size: 1.5em;
   margin-bottom: 15px;
   color: #333;
+  text-align: center;
 }
 
 .duration-input {
@@ -195,6 +269,13 @@ input[type="range"] {
 
 .duration-input button:hover {
   background: linear-gradient(135deg, #185a9d, #43cea2);
+}
+
+.button-group {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
 }
 
 .pie-chart {
@@ -358,7 +439,7 @@ input[type="range"] {
 
 .available-music {
   position: absolute;
-  top: 40%;
+  top: 60%;
   left: 20px;
   transform: translateY(-50%);
   background-color: rgba(224, 247, 250, 0.8);

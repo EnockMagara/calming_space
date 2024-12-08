@@ -6,9 +6,9 @@ import fetch from 'node-fetch';
 const router = express.Router();
 
 // Dashboard route
-router.get('/dashboard', checkAuthenticated, async (req, res) => {
-  const username = req.user.username;
-  const userRole = req.user.role;
+router.get('/dashboard', async (req, res) => {
+  const username = req.user ? req.user.username : null;
+  const userRole = req.user ? req.user.role : null;
 
   try {
     const musicList = await Music.find({});

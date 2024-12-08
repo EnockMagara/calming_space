@@ -19,7 +19,7 @@ router.post('/messages', checkAuthenticated, async (req, res) => {
 });
 
 // Route to fetch a random approved message
-router.get('/random-message', async (req, res) => {
+router.get('/random-message', checkAuthenticated, async (req, res) => {
   try {
     const messages = await Message.find({ approved: true });
     if (messages.length === 0) {

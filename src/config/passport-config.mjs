@@ -26,10 +26,10 @@ export function initialize(passport) {
   passport.serializeUser((user, done) => done(null, user.id)); // Serialize user
   passport.deserializeUser(async (id, done) => {
     try {
-      const user = await User.findById(id); // Use await to handle the promise
-      done(null, user); // Pass the user to done
+      const user = await User.findById(id); 
+      done(null, user); 
     } catch (err) {
-      done(err); // Pass any error to done
+      done(err); 
     }
   });
 }

@@ -51,7 +51,7 @@ router.post('/register', checkNotAuthenticated, async (req, res) => {
 // Logout route
 router.post('/logout', (req, res) => {
   req.logOut(() => {
-    res.redirect('/login'); // Redirect to login on logout
+    res.redirect('/dashboard'); // Redirect to dashboard on logout
   });
 });
 

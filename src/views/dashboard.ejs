@@ -6,19 +6,24 @@
   <title>Dashboard</title>
   <link rel="stylesheet" href="/styles.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body class="dashboard">
   <div id="animated-message" class="animated-message"></div>
   <div id="backgroundQuote" class="background-quote"></div>
   <header class="header">
-    <h1 class="title">Welcome to Your Calming Space, <%= username %>!</h1>
-    <form action="/logout" method="POST" class="logout-form">
-      <button type="submit">Logout</button>
-    </form>
+    <h1 class="title">Welcome to your personal sanctuary for relaxation and mindfulness, <%= username ? username : 'Guest' %>!</h1>
+    <% if (username) { %>
+      <form action="/logout" method="POST" class="logout-form">
+        <button type="submit">Logout</button>
+      </form>
+    <% } else { %>
+      <a href="/login">Login</a> | <a href="/register">Register</a>
+    <% } %>
   </header>
   <main class="main-content">
     <section class="ambient-sounds card">
-      <h2>Adjust Ambient Sounds</h2>
+      <h2><i class="fas fa-sliders-h"></i> Adjust Ambient Sounds</h2>
       <div class="sound-controls">
         <% musicList.forEach((music) => { %>
           <% if (music.type !== 'music') { %>
@@ -42,7 +47,7 @@
       </section>
     <% } %>
     <section class="available-music">
-      <h2>Available Music</h2>
+      <h2><i class="fas fa-music"></i> Available Music</h2>
       <div class="music-tracks">
         <% let musicIndex = 1; %>
         <% musicList.forEach((music) => { %>
@@ -90,10 +95,14 @@
     <div id="quotesContainer" class="quotes-container"></div>
     <section class="kindness-share card">
       <h2>Share Kindness</h2>
-      <div class="kindness-controls">
-        <input type="text" id="kindMessage" placeholder="Share a kind message">
-        <button id="shareButton">Share</button>
-      </div>
+      <% if (username) { %>
+        <div class="kindness-controls">
+          <input type="text" id="kindMessage" placeholder="Share a kind message">
+          <button id="shareButton">Share</button>
+        </div>
+      <% } else { %>
+        <p>Please <a href="/login">login</a> or <a href="/register">register</a> to share a kind message.</p>
+      <% } %>
     </section>
   </main>
   <script>
@@ -171,32 +180,35 @@
         .catch(error => console.error('Error fetching message:', error));
 
       // Handle form submission for sharing a message
-      document.getElementById('shareButton').addEventListener('click', () => {
-        const message = document.getElementById('kindMessage').value.trim(); // Trim whitespace
-        if (!message) {
-          alert('Please enter a message.'); // Alert if message is empty
-          return;
-        }
-        console.log('Message to share:', message); // Log the message to be shared
-
-        fetch('/api/messages', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ message })
-        })
-        .then(response => response.json())
-        .then(data => {
-          console.log('Response from server:', data);
-          if (data.success) {
-            alert(data.message);
-          } else {
-            alert('Error: ' + data.message);
+      const shareButton = document.getElementById('shareButton');
+      if (shareButton) {
+        shareButton.addEventListener('click', () => {
+          const message = document.getElementById('kindMessage').value.trim(); // Trim whitespace
+          if (!message) {
+            alert('Please enter a message.'); // Alert if message is empty
+            return;
           }
-        })
-        .catch(error => console.error('Error:', error));
-      });
+          console.log('Message to share:', message); // Log the message to be shared
+
+          fetch('/api/messages', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ message })
+          })
+          .then(response => response.json())
+          .then(data => {
+            console.log('Response from server:', data);
+            if (data.success) {
+              alert(data.message);
+            } else {
+              alert('Error: ' + data.message);
+            }
+          })
+          .catch(error => console.error('Error:', error));
+        });
+      }
 
       // Timer functionality
       const timerDisplay = document.getElementById('timer-display');
