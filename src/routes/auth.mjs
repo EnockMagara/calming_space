@@ -19,17 +19,17 @@ router.post('/login', checkNotAuthenticated, passport.authenticate('local', {
 
 // Register route
 router.get('/register', checkNotAuthenticated, (req, res) => {
-  res.render('register.ejs', { error: null }); // Render register view with no error
+  res.render('register.ejs', { error: null }); 
 });
 
 router.post('/register', checkNotAuthenticated, async (req, res) => {
   try {
     const { username, password } = req.body;
-    console.log('Registering user:', username); // Log the username being registered
+    console.log('Registering user:', username); 
 
     const existingUser = await User.findOne({ username });
     if (existingUser) {
-      console.log('Username already exists:', username); // Log if username exists
+      console.log('Username already exists:', username); 
       return res.render('register.ejs', { error: 'Username already exists' });
     }
 
@@ -39,11 +39,11 @@ router.post('/register', checkNotAuthenticated, async (req, res) => {
       password: hashedPassword,
     });
 
-    console.log('Saving user to database:', user); // Log the user object before saving
+    console.log('Saving user to database:', user); 
     await user.save();
     res.redirect('/login');
   } catch (err) {
-    console.error('Registration error:', err); // Log the error
+    console.error('Registration error:', err); 
     res.render('register.ejs', { error: 'Registration failed. Please try again.' });
   }
 });
@@ -53,6 +53,18 @@ router.post('/logout', (req, res) => {
   req.logOut(() => {
     res.redirect('/dashboard'); // Redirect to dashboard on logout
   });
+});
+
+// Spotify login route
+router.get('/auth/spotify', passport.authenticate('spotify', {
+  scope: ['user-read-email', 'user-read-private', 'user-library-read'] // Scopes for Spotify
+}));
+
+// Spotify callback route
+router.get('/auth/spotify/callback', passport.authenticate('spotify', {
+  failureRedirect: '/login'
+}), (req, res) => {
+  res.redirect('/dashboard'); // Redirect to dashboard on successful login
 });
 
 export default router;

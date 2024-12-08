@@ -60,12 +60,11 @@ p {
 }
 
 .card {
-  background-color: #ffffff;
+  background-color: rgba(224, 247, 250, 0.8);
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  padding: 15px;
-  transition: transform 0.3s ease;
-  margin: 20px;
+  padding: 20px;
+  margin-bottom: 20px;
 }
 
 .card:hover {
@@ -131,6 +130,7 @@ button:hover {
 
 input[type="range"] {
   -webkit-appearance: none;
+  appearance: none;
   width: 100px;
   height: 8px;
   background: #ddd;
@@ -141,6 +141,7 @@ input[type="range"] {
 
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
+  appearance: none;
   width: 16px;
   height: 16px;
   background: #00796b;
@@ -150,6 +151,7 @@ input[type="range"]::-webkit-slider-thumb {
 }
 
 input[type="range"]::-moz-range-thumb {
+  appearance: none;
   width: 16px;
   height: 16px;
   background: #00796b;
@@ -449,4 +451,14 @@ input[type="range"]::-moz-range-thumb:hover {
   width: 300px;
   z-index: 100;
   border-radius: 0 50px 50px 0;
+}
+
+.track {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.play-spotify-button {
+  margin-right: 10px;
 }

@@ -1,27 +1,35 @@
-// Import necessary modules
 import mongoose from 'mongoose';
 
-// Define User Schema
 const userSchema = new mongoose.Schema({
   username: {
-    type: String,       // Data type is String
-    required: true,     // Field is required
-    unique: true,       // Must be unique
-    trim: true          // Trim whitespace
+    type: String,
+    required: true,
+    unique: true,
+    trim: true
   },
   password: {
-    type: String,       // Data type is String
-    required: true      // Field is required
+    type: String,
+    required: function() { return !this.spotifyId; }
   },
   role: {
-    type: String,       // Data type is String
-    default: 'user'    // Default role is 'user'
+    type: String,
+    default: 'user'
+  },
+  spotifyId: {
+    type: String,
+    unique: true,
+    sparse: true
+  },
+  accessToken: {
+    type: String
+  },
+  refreshToken: {
+    type: String
   },
   createdAt: {
-    type: Date,         // Data type is Date
-    default: Date.now   // Default value is current date
+    type: Date,
+    default: Date.now
   }
 });
 
-// Export User model
 export const User = mongoose.model('User', userSchema);
