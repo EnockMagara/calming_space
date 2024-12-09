@@ -366,29 +366,37 @@
         });
       });
 
-     
-
       window.onSpotifyWebPlaybackSDKReady = () => {
+        const token = '<%= accessToken %>'; // Ensure the token is defined
+
         const player = new Spotify.Player({
           name: 'Web Playback SDK',
           getOAuthToken: cb => { cb(token); }
         });
 
-        // Connect to the player
-        player.connect();
-
-        // Handle player state changes
-        player.addListener('player_state_changed', state => {
-          console.log(state);
+        player.connect().then(success => {
+          if (success) {
+            console.log('The Web Playback SDK successfully connected to Spotify!');
+            fetch(`https://api.spotify.com/v1/me/player`, {
+              method: 'PUT',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ device_ids: [player._options.id], play: false })
+            }).catch(error => console.error('Error setting active device:', error));
+          }
         });
 
-        // Handle errors
         player.addListener('initialization_error', ({ message }) => { console.error(message); });
         player.addListener('authentication_error', ({ message }) => { console.error(message); });
         player.addListener('account_error', ({ message }) => { console.error(message); });
         player.addListener('playback_error', ({ message }) => { console.error(message); });
 
-        // Play Spotify track
+        player.addListener('player_state_changed', state => {
+          console.log(state);
+        });
+
         document.querySelectorAll('.play-spotify-button').forEach(button => {
           button.addEventListener('click', () => {
             const uri = button.getAttribute('data-uri');

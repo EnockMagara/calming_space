@@ -57,7 +57,7 @@ router.post('/logout', (req, res) => {
 
 // Spotify login route
 router.get('/auth/spotify', passport.authenticate('spotify', {
-  scope: ['user-read-email', 'user-read-private', 'user-library-read'] // Scopes for Spotify
+  scope: ['user-read-email', 'user-read-private', 'user-library-read', 'streaming']
 }));
 
 // Spotify callback route
