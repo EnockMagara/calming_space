@@ -366,9 +366,10 @@
         });
       });
 
-      window.onSpotifyWebPlaybackSDKReady = () => {
-        const token = '<%= accessToken %>'; // Ensure the token is defined
+      const token = '<%= accessToken %>';
+      let currentTrackUri = null;
 
+      window.onSpotifyWebPlaybackSDKReady = () => {
         const player = new Spotify.Player({
           name: 'Web Playback SDK',
           getOAuthToken: cb => { cb(token); }
@@ -377,14 +378,18 @@
         player.connect().then(success => {
           if (success) {
             console.log('The Web Playback SDK successfully connected to Spotify!');
-            fetch(`https://api.spotify.com/v1/me/player`, {
-              method: 'PUT',
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({ device_ids: [player._options.id], play: false })
-            }).catch(error => console.error('Error setting active device:', error));
+            player.addListener('ready', ({ device_id }) => {
+              console.log('Ready with Device ID', device_id);
+
+              fetch(`https://api.spotify.com/v1/me/player`, {
+                method: 'PUT',
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ device_ids: [device_id], play: false })
+              }).catch(error => console.error('Error setting active device:', error));
+            });
           }
         });
 
@@ -393,21 +398,34 @@
         player.addListener('account_error', ({ message }) => { console.error(message); });
         player.addListener('playback_error', ({ message }) => { console.error(message); });
 
-        player.addListener('player_state_changed', state => {
-          console.log(state);
-        });
-
         document.querySelectorAll('.play-spotify-button').forEach(button => {
           button.addEventListener('click', () => {
             const uri = button.getAttribute('data-uri');
-            fetch(`https://api.spotify.com/v1/me/player/play`, {
-              method: 'PUT',
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({ uris: [uri] })
-            }).catch(error => console.error('Error playing Spotify track:', error));
+            const isPlaying = button.textContent === 'Pause';
+
+            if (isPlaying) {
+              player.pause().then(() => {
+                button.textContent = 'Play';
+                currentTrackUri = null;
+              }).catch(error => console.error('Error pausing track:', error));
+            } else {
+              if (currentTrackUri && currentTrackUri !== uri) {
+                player.pause().then(() => {
+                  document.querySelector(`button[data-uri="${currentTrackUri}"]`).textContent = 'Play';
+                }).catch(error => console.error('Error pausing current track:', error));
+              }
+              fetch(`https://api.spotify.com/v1/me/player/play`, {
+                method: 'PUT',
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ uris: [uri] })
+              }).then(() => {
+                button.textContent = 'Pause';
+                currentTrackUri = uri;
+              }).catch(error => console.error('Error playing track:', error));
+            }
           });
         });
       };

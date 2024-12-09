@@ -39,7 +39,7 @@ router.get('/dashboard', async (req, res) => {
 
       if (spotifyResponse.ok) {
         const spotifyData = await spotifyResponse.json();
-        spotifyTracks = spotifyData.items.slice(0, 5);
+        spotifyTracks = spotifyData.items.slice(0, 10);
       } else {
         const errorDetails = await spotifyResponse.text();
         console.error('Failed to fetch Spotify tracks:', errorDetails);
