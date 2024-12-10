@@ -25,8 +25,20 @@ body {
 }
 
 .header a {
-  font-size: 1em;
-  font-weight: 400;
+  display: inline-block;
+  background-color: #00796b;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  text-decoration: none;
+  transition: background-color 0.3s ease;
+  font-size: 0.9em;
+  margin: 0 5px;
+}
+
+.header a:hover {
+  background-color: #004d40;
 }
 
 .site-description {
@@ -53,6 +65,7 @@ p {
 
 .main-content {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
@@ -183,10 +196,18 @@ input[type="range"]::-moz-range-thumb:hover {
   transition: transform 0.3s ease;
   max-width: 400px;
   margin: 0 auto;
+  opacity: 1;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  position: relative;
 }
 
 .kindness-share:hover {
   transform: translateY(-5px);
+}
+
+.kindness-share.fade-out {
+  opacity: 0;
+  transform: translateY(-20px);
 }
 
 .kindness-controls {
@@ -322,16 +343,14 @@ input[type="range"]::-moz-range-thumb:hover {
 }
 
 .kind-message {
-  position: fixed;
-  bottom: 10px;
-  left: 50%;
-  transform: translateX(-50%);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
   background-color: #00796b;
   color: #fff;
-  padding: 10px 20px;
-  border-radius: 5px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
+  padding: 10px;
+  border-radius: 8px 8px 0 0;
   opacity: 0;
   transition: opacity 0.5s ease;
 }
@@ -457,8 +476,93 @@ input[type="range"]::-moz-range-thumb:hover {
   display: flex;
   align-items: center;
   margin-bottom: 10px;
+  opacity: 1;
+  transition: opacity 0.5s ease;
+}
+
+.track.hidden {
+  opacity: 0;
 }
 
 .play-spotify-button {
   margin-right: 10px;
+}
+
+.spotify-tracks {
+  position: static;
+  width: 100%;
+  max-width: 400px;
+  margin-top: 40px;
+}
+
+.login-container,
+.register-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(to bottom right, #f0f9ff, #dff6fa);
+  padding: 20px;
+}
+
+.login-container h1,
+.register-container h1 {
+  font-size: 2em;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.login-container form,
+.register-container form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.login-container input,
+.register-container input {
+  margin-bottom: 15px;
+  padding: 10px;
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.login-container button,
+.register-container button {
+  background-color: #00796b;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.login-container button:hover,
+.register-container button:hover {
+  background-color: #004d40;
+}
+
+.login-container p {
+  margin-top: 15px;
+}
+
+.login-container a {
+  color: #00796b;
+  text-decoration: none;
+}
+
+.login-container a:hover {
+  text-decoration: underline;
+}
+
+.error-message {
+  color: red;
+  margin-bottom: 10px;
 }

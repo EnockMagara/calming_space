@@ -24,7 +24,7 @@
   </header>
   <main class="main-content">
     <section class="ambient-sounds card">
-      <h2><i class="fas fa-sliders-h"></i> Adjust Ambient Sounds</h2>
+      <h2><i class="fas fa-sliders-h"></i> Adjust Relaxing White Noise</h2>
       <div class="sound-controls">
         <% musicList.forEach((music) => { %>
           <% if (music.type !== 'music') { %>
@@ -48,7 +48,7 @@
       </section>
     <% } %>
     <section class="available-music">
-      <h2><i class="fas fa-music"></i> Available Music</h2>
+      <h2><i class="fas fa-music"></i> Available Tracks</h2>
       <div class="music-tracks">
         <% let musicIndex = 1; %>
         <% musicList.forEach((music) => { %>
@@ -194,14 +194,21 @@
         .then(response => response.json())
         .then(data => {
           if (data.success) {
-            kindMessageContainer.textContent = `Kind Message: ${data.message}`;
-            kindMessageContainer.classList.add('show');
+            const kindMessageElement = document.createElement('div');
+            kindMessageElement.className = 'kind-message';
+            kindMessageElement.textContent = data.message;
+            const kindnessShare = document.querySelector('.kindness-share');
+            kindnessShare.insertBefore(kindMessageElement, kindnessShare.firstChild);
+            setTimeout(() => {
+              kindMessageElement.classList.add('show');
+            }, 500);
           }
         })
         .catch(error => console.error('Error fetching message:', error));
 
       // Handle form submission for sharing a message
       const shareButton = document.getElementById('shareButton');
+      const kindnessShare = document.querySelector('.kindness-share');
       if (shareButton) {
         shareButton.addEventListener('click', () => {
           const message = document.getElementById('kindMessage').value.trim(); // Trim whitespace
@@ -223,6 +230,7 @@
             console.log('Response from server:', data);
             if (data.success) {
               alert(data.message);
+              kindnessShare.classList.add('fade-out'); // Add fade-out class
             } else {
               alert('Error: ' + data.message);
             }
