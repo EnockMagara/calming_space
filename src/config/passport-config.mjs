@@ -1,29 +1,21 @@
 import { Strategy as LocalStrategy } from 'passport-local';
-import bcrypt from 'bcrypt';
 import { User } from '../models/user.mjs'; 
 import { Strategy as SpotifyStrategy } from 'passport-spotify';
 
 // Initialize Passport
 export function initialize(passport) {
   // Define authentication strategy
-  const authenticateUser = async (username, password, done) => {
-    const user = await User.findOne({ username }); // Find user by username
-    if (!user) {
-      return done(null, false, { message: 'No user with that username' });
-    }
-
+  passport.use(new LocalStrategy(async (username, password, done) => {
     try {
-      if (await bcrypt.compare(password, user.password)) {
-        return done(null, user); // Password matches
-      } else {
-        return done(null, false, { message: 'Password incorrect' });
-      }
-    } catch (e) {
-      return done(e);
+      const user = await User.findOne({ username: username });
+      if (!user) return done(null, false);
+      if (!await user.comparePassword(password)) return done(null, false);
+      return done(null, user);
+    } catch (err) {
+      return done(err);
     }
-  };
+  }));
 
-  passport.use(new LocalStrategy(authenticateUser));
   passport.serializeUser((user, done) => done(null, user.id)); // Serialize user
   passport.deserializeUser(async (id, done) => {
     try {

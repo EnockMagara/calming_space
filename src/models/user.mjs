@@ -1,3 +1,4 @@
+import argon2 from 'argon2';
 import mongoose from 'mongoose';
 
 const userSchema = new mongoose.Schema({
@@ -31,5 +32,20 @@ const userSchema = new mongoose.Schema({
     default: Date.now
   }
 });
+
+userSchema.pre('save', async function (next) {
+  const user = this;
+  if (!user.isModified('password')) return next();
+  try {
+    user.password = await argon2.hash(user.password);
+    return next();
+  } catch (err) {
+    return next(err);
+  }
+});
+
+userSchema.methods.comparePassword = async function (candidatePassword) {
+  return argon2.verify(this.password, candidatePassword);
+};
 
 export const User = mongoose.model('User', userSchema);

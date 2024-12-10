@@ -1,6 +1,5 @@
 import express from 'express';
 import passport from 'passport';
-import bcrypt from 'bcrypt';
 import { User } from '../models/user.mjs'; // Import User model
 import { checkAuthenticated, checkNotAuthenticated } from '../authMiddleware.mjs'; // Import middleware
 
@@ -33,10 +32,9 @@ router.post('/register', checkNotAuthenticated, async (req, res) => {
       return res.render('register.ejs', { error: 'Username already exists' });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
     const user = new User({
       username,
-      password: hashedPassword,
+      password,
     });
 
     console.log('Saving user to database:', user); 

@@ -55,6 +55,6 @@ app.set('view engine', 'ejs');
 app.use(express.static('public'));
 
 // Start server
-app.listen(2113, () => {
+app.listen(2113, '0.0.0.0', () => {
   console.log('Server running on port 2113');
 });
