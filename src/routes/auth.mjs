@@ -60,9 +60,9 @@ router.get('/auth/spotify', passport.authenticate('spotify', {
 
 // Spotify callback route
 router.get('/auth/spotify/callback', passport.authenticate('spotify', {
-  failureRedirect: '/login'
+  failureRedirect: 'http://68.183.100.82:2113/login'
 }), (req, res) => {
-  res.redirect('/dashboard'); // Redirect to dashboard on successful login
+  res.redirect('http://68.183.100.82:2113/dashboard'); // Redirect to dashboard on successful login
 });
 
 export default router;

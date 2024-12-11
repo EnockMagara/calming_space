@@ -29,7 +29,7 @@ export function initialize(passport) {
   passport.use(new SpotifyStrategy({
     clientID: process.env.SPOTIFY_CLIENT_ID,
     clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-    callbackURL: 'http://localhost:2113/auth/spotify/callback'
+    callbackURL: 'http://68.183.100.82:2113/auth/spotify/callback'
   },
   async (accessToken, refreshToken, expires_in, profile, done) => {
     try {
