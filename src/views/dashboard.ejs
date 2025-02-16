@@ -376,9 +376,10 @@
 
       const token = '<%= accessToken %>';
       let currentTrackUri = null;
+      let player; // Declare player variable outside the function
 
-      window.onSpotifyWebPlaybackSDKReady = () => {
-        const player = new Spotify.Player({
+      function initializePlayer() {
+        player = new Spotify.Player({
           name: 'Web Playback SDK',
           getOAuthToken: cb => { cb(token); }
         });
@@ -405,6 +406,16 @@
         player.addListener('authentication_error', ({ message }) => { console.error(message); });
         player.addListener('account_error', ({ message }) => { console.error(message); });
         player.addListener('playback_error', ({ message }) => { console.error(message); });
+
+        player.addListener('not_ready', ({ device_id }) => {
+          console.log('Device ID has gone offline', device_id);
+          // Attempt to reconnect the player
+          player.connect().then(success => {
+            if (success) {
+              console.log('Reconnected to Spotify!');
+            }
+          });
+        });
 
         document.querySelectorAll('.play-spotify-button').forEach(button => {
           button.addEventListener('click', () => {
@@ -436,7 +447,9 @@
             }
           });
         });
-      };
+      }
+
+      window.onSpotifyWebPlaybackSDKReady = initializePlayer;
     });
   </script>
 </body>
