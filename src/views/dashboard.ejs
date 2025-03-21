@@ -3,33 +3,74 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard</title>
+  <title>Your Sanctuary</title>
   <link rel="stylesheet" href="/styles.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
   <script src="https://sdk.scdn.co/spotify-player.js"></script>
 </head>
-<body class="dashboard">
-  <div id="animated-message" class="animated-message"></div>
-  <div id="backgroundQuote" class="background-quote"></div>
+<body>
+  <!-- Header with logo -->
   <header class="header">
-    <h1 class="title">Welcome to your personal sanctuary for relaxation and mindfulness, <%= username ? username : 'Guest' %>!</h1>
-    <% if (username) { %>
-      <form action="/logout" method="POST" class="logout-form">
-        <button type="submit">Logout</button>
-      </form>
-    <% } else { %>
-      <a href="/login">Login</a> | <a href="/register">Register</a>
-    <% } %>
+    <img src="/images/lotus-logo.png" alt="Logo" class="logo">
+    <h1 class="title">Welcome to Your Sanctuary</h1>
+    <div class="auth-links">
+      <% if (username) { %>
+        <form action="/logout" method="POST">
+          <button type="submit" class="auth-button logout-button"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </form>
+      <% } else { %>
+        <a href="/login" class="auth-button login-button">Login</a>
+        <a href="/register" class="auth-button register-button">Register</a>
+      <% } %>
+    </div>
+    <div class="menu">
+      <i class="fas fa-bars"></i>
+    </div>
   </header>
+
+  <!-- Main content -->
   <main class="main-content">
+    <!-- Prominent Play/Pause Button for All Sounds -->
+    <button id="play-pause-button">
+      <i class="fas fa-play"></i> Play All Sounds
+    </button>
+
+    <!-- Timer section -->
+    <section class="mindfulness-timer card">
+      <h2>Mindfulness Timer</h2>
+      <div class="timer-container">
+        <svg id="timer-svg" width="150" height="150" viewBox="0 0 100 100">
+          <!-- Background circle -->
+          <circle cx="50" cy="50" r="45" fill="none" stroke="#eee" stroke-width="10"/>
+          <!-- Progress circle -->
+          <circle id="progress-circle" cx="50" cy="50" r="45" fill="none" stroke="#43cea2" stroke-width="10" stroke-dasharray="283" stroke-dashoffset="283" transform="rotate(-90 50 50)"/>
+          <!-- Timer text -->
+          <text id="timer-text" x="50" y="55" text-anchor="middle" font-size="20" fill="#fff">10:00</text>
+        </svg>
+      </div>
+      <div class="duration-input" id="duration-input-container">
+        <input type="number" id="mindfulness-duration" placeholder="Duration (min)" min="1" value="10">
+        <button id="set-duration-button"><i class="fas fa-clock"></i></button>
+      </div>
+      <div class="buttons">
+        <button id="start-button"><i class="fas fa-play"></i></button>
+        <button id="pause-button"><i class="fas fa-pause"></i></button>
+        <button id="stop-button"><i class="fas fa-stop"></i></button>
+      </div>
+      <div class="message" id="message"></div>
+    </section>
+
+    <!-- White noise section -->
     <section class="ambient-sounds card">
-      <h2><i class="fas fa-sliders-h"></i> Adjust Relaxing White Noise</h2>
+      <h2><i class="fas fa-water"></i> Adjust Relaxing White Noise</h2>
       <div class="sound-controls">
         <% musicList.forEach((music) => { %>
           <% if (music.type !== 'music') { %>
             <div class="sound-control" id="sound-<%= music._id %>">
-              <label for="<%= music.type %>"><%= music.type.charAt(0).toUpperCase() + music.type.slice(1) %></label>
+              <img src="/images/<%= music.type %>-icon.png" alt="<%= music.type %>">
+              <label for="<%= music.type %>">
+                <%= music.type %>
+              </label>
               <input type="range" id="<%= music.type %>" name="<%= music.type %>" min="0" max="100" value="0" data-filename="<%= music.filename %>">
               <% if (userRole === 'admin') { %>
                 <input type="text" value="<%= music.filename %>" class="track-name" data-id="<%= music._id %>">
@@ -41,20 +82,19 @@
         <% }) %>
       </div>
     </section>
-    <% if (userRole === 'admin') { %>
-      <section class="admin-actions">
-        <h2>Admin Actions</h2>
-        <a href="/music/upload">Upload Music and Approve Messages</a>
-      </section>
-    <% } %>
-    <section class="available-music">
+
+    <!-- Available tracks section -->
+    <section class="available-music card">
       <h2><i class="fas fa-music"></i> Available Tracks</h2>
       <div class="music-tracks">
         <% let musicIndex = 1; %>
         <% musicList.forEach((music) => { %>
           <% if (music.type === 'music') { %>
             <div class="track" id="track-<%= music._id %>">
-              <strong>Track <%= musicIndex %>:</strong>
+              <img src="/images/track-icon-<%= musicIndex %>.png" alt="Track <%= musicIndex %>">
+              <span class="track-name">
+                Track <%= musicIndex %>: <%= music.description || music.filename %>
+              </span>
               <input type="range" class="volumeSlider" min="0" max="100" value="0" data-filename="<%= music.filename %>">
               <% if (userRole === 'admin') { %>
                 <input type="text" value="<%= music.filename %>" class="track-name" data-id="<%= music._id %>">
@@ -67,42 +107,22 @@
         <% }) %>
       </div>
     </section>
-    <div class="controls">
-      <button id="togglePlayButton" class="icon-button">
-        <i class="fas fa-play"></i>
-      </button>
-    </div>
 
-    <section class="mindfulness-timer card">
-      <h2>Mindfulness Timer</h2>
-      <div class="pie-chart" id="pie-chart"></div>
-      <div class="timer-display" id="timer-display">10:00</div>
-      <div class="duration-input">
-        <input type="number" id="mindfulness-duration" placeholder="Duration (min)" min="1" value="10">
-        <button id="set-duration-button">Set Duration</button>
-      </div>
-      <div class="buttons">
-        <button id="start-button">Start</button>
-        <button id="pause-button">Pause</button>
-        <button id="stop-button">Stop</button>
-      </div>
-      <div class="message" id="message"></div>
-    </section>
-
-    <section class="spotify-tracks card" style="position: absolute; top: 60%; right: 20px; width: 300px;">
-      <h2><i class="fab fa-spotify"></i> Your Spotify Tracks</h2>
+    <!-- Spotify section -->
+    <section class="spotify-tracks card">
+      <h2>Your Spotify Tracks</h2>
       <% if (username) { %>
         <% if (isSpotifyAuthenticated) { %>
           <div class="spotify-tracks-list">
             <% spotifyTracks.forEach((track) => { %>
               <div class="track" id="spotify-track-<%= track.track.id %>">
-                <button class="play-spotify-button" data-uri="<%= track.track.uri %>">Play</button>
+                <button class="play-spotify-button" data-uri="<%= track.track.uri %>"><i class="fas fa-play"></i></button>
                 <strong><%= track.track.name %></strong>
               </div>
             <% }) %>
           </div>
         <% } else { %>
-          <a href="/auth/spotify" class="spotify-login-button">Add Spotify tracks</a>
+          <a href="/auth/spotify" class="spotify-login-button">Add Spotify Tracks</a>
         <% } %>
       <% } else { %>
         <p>Please <a href="/login">log in</a> to add Spotify tracks.</p>
@@ -110,347 +130,7 @@
     </section>
   </main>
 
-  <div class="page-separator"></div>
-
-  <main class="main-content">
-    <div id="quotesContainer" class="quotes-container"></div>
-    <section class="kindness-share card">
-      <h2>Share Kindness</h2>
-      <% if (username) { %>
-        <div class="kindness-controls">
-          <input type="text" id="kindMessage" placeholder="Share a kind message">
-          <button id="shareButton">Share</button>
-        </div>
-      <% } else { %>
-        <p>Please <a href="/login">login</a> or <a href="/register">register</a> to share a kind message.</p>
-      <% } %>
-    </section>
-  </main>
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const audioElements = {}; // Object to store audio elements
-      let isPlaying = false; // Track play state
-
-      // Function to fetch and display quotes
-      const fetchAndDisplayQuotes = () => {
-        fetch('/api/random-quotes')
-          .then(response => response.json())
-          .then(quotes => {
-            const quotesContainer = document.getElementById('quotesContainer');
-            quotesContainer.innerHTML = ''; // Clear previous quotes
-            quotes.slice(0, 3).forEach(quote => { // Display up to 3 quotes
-              const quoteElement = document.createElement('p');
-              quoteElement.innerHTML = `<strong>${quote.q}</strong> - ${quote.a}`;
-              quotesContainer.appendChild(quoteElement);
-            });
-          })
-          .catch(error => console.error('Error fetching quotes:', error));
-      };
-
-      // Fetch quotes every minute
-      fetchAndDisplayQuotes(); // Initial fetch
-      setInterval(fetchAndDisplayQuotes, 60000); // Fetch every 60 seconds
-
-      // Initialize audio elements for all sounds
-      document.querySelectorAll('input[type="range"]').forEach(slider => {
-        const filename = slider.getAttribute('data-filename');
-        if (!audioElements[filename]) {
-          const audio = new Audio(`/music/stream/${encodeURIComponent(filename)}`);
-          audio.volume = 0; // Start with volume zero
-          audio.loop = true; // Enable looping for the audio
-          audioElements[filename] = audio;
-        }
-
-        slider.addEventListener('input', () => {
-          const volume = slider.value / 100;
-          audioElements[filename].volume = volume;
-        });
-      });
-
-      // Toggle play/stop for all sounds
-      document.getElementById('togglePlayButton').addEventListener('click', () => {
-        if (isPlaying) {
-          Object.values(audioElements).forEach(audio => {
-            audio.pause();
-            audio.currentTime = 0;
-          });
-          document.querySelector('#togglePlayButton i').classList.replace('fa-pause', 'fa-play');
-        } else {
-          Object.values(audioElements).forEach(audio => {
-            audio.play();
-          });
-          document.querySelector('#togglePlayButton i').classList.replace('fa-play', 'fa-pause');
-        }
-        isPlaying = !isPlaying;
-      });
-
-      const kindMessageContainer = document.createElement('div');
-      kindMessageContainer.id = 'kindMessageContainer';
-      kindMessageContainer.className = 'kind-message';
-      document.body.appendChild(kindMessageContainer);
-
-      // Fetch and display a random kind message
-      fetch('/api/random-message')
-        .then(response => response.json())
-        .then(data => {
-          if (data.success) {
-            const kindMessageElement = document.createElement('div');
-            kindMessageElement.className = 'kind-message';
-            kindMessageElement.textContent = data.message;
-            const kindnessShare = document.querySelector('.kindness-share');
-            kindnessShare.insertBefore(kindMessageElement, kindnessShare.firstChild);
-            setTimeout(() => {
-              kindMessageElement.classList.add('show');
-            }, 500);
-          }
-        })
-        .catch(error => console.error('Error fetching message:', error));
-
-      // Handle form submission for sharing a message
-      const shareButton = document.getElementById('shareButton');
-      const kindnessShare = document.querySelector('.kindness-share');
-      if (shareButton) {
-        shareButton.addEventListener('click', () => {
-          const message = document.getElementById('kindMessage').value.trim(); // Trim whitespace
-          if (!message) {
-            alert('Please enter a message.'); // Alert if message is empty
-            return;
-          }
-          console.log('Message to share:', message); // Log the message to be shared
-
-          fetch('/api/messages', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ message })
-          })
-          .then(response => response.json())
-          .then(data => {
-            console.log('Response from server:', data);
-            if (data.success) {
-              alert(data.message);
-              kindnessShare.classList.add('fade-out'); // Add fade-out class
-            } else {
-              alert('Error: ' + data.message);
-            }
-          })
-          .catch(error => console.error('Error:', error));
-        });
-      }
-
-      // Timer functionality
-      const timerDisplay = document.getElementById('timer-display');
-      const startButton = document.getElementById('start-button');
-      const pauseButton = document.getElementById('pause-button');
-      const stopButton = document.getElementById('stop-button');
-      const setDurationButton = document.getElementById('set-duration-button');
-      const mindfulnessDurationInput = document.getElementById('mindfulness-duration');
-      const message = document.getElementById('message');
-      const pieChart = document.getElementById('pie-chart');
-
-      let timer;
-      let isRunning = false; // Track if the timer is running
-      let isPaused = false; // Track if the timer is paused
-      let currentDuration = 10 * 60; // Default duration of 10 minutes
-      let totalDuration = currentDuration; // Total duration for the timer
-
-      // Function to format time in mm:ss
-      function formatTime(seconds) {
-        const minutes = Math.floor(seconds / 60);
-        const remainingSeconds = seconds % 60;
-        return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-      }
-
-      // Function to update the pie chart based on the timer progress
-      function updatePieChart() {
-        const percentage = ((totalDuration - currentDuration) / totalDuration) * 100;
-        pieChart.style.background = `conic-gradient(#43cea2 ${percentage}%, #185a9d ${percentage}%)`;
-      }
-
-      // Function to start the timer
-      function startTimer() {
-        if (!isRunning && !isPaused) {
-          isRunning = true;
-          timer = setInterval(() => {
-            currentDuration--;
-            timerDisplay.textContent = formatTime(currentDuration);
-            updatePieChart();
-            if (currentDuration <= 0) {
-              clearInterval(timer);
-              isRunning = false;
-              message.textContent = 'Mindfulness session complete!';
-            }
-          }, 1000);
-        } else if (isPaused) {
-          isPaused = false;
-          isRunning = true;
-          timer = setInterval(() => {
-            currentDuration--;
-            timerDisplay.textContent = formatTime(currentDuration);
-            updatePieChart();
-            if (currentDuration <= 0) {
-              clearInterval(timer);
-              isRunning = false;
-              message.textContent = 'Mindfulness session complete!';
-            }
-          }, 1000);
-        }
-      }
-
-      // Function to pause the timer
-      function pauseTimer() {
-        if (isRunning) {
-          clearInterval(timer);
-          isRunning = false;
-          isPaused = true;
-        }
-      }
-
-      // Function to stop the timer
-      function stopTimer() {
-        clearInterval(timer);
-        isRunning = false;
-        isPaused = false;
-        currentDuration = parseInt(mindfulnessDurationInput.value) * 60;
-        totalDuration = currentDuration;
-        timerDisplay.textContent = formatTime(currentDuration);
-        updatePieChart();
-        message.textContent = '';
-      }
-
-      // Function to set the duration of the timer
-      function setDuration() {
-        const duration = parseInt(mindfulnessDurationInput.value);
-        if (!isNaN(duration) && duration > 0) {
-          currentDuration = duration * 60;
-          totalDuration = currentDuration;
-          timerDisplay.textContent = formatTime(currentDuration);
-          updatePieChart();
-        }
-      }
-
-      // Event listeners for timer buttons
-      startButton.addEventListener('click', startTimer);
-      pauseButton.addEventListener('click', pauseTimer);
-      stopButton.addEventListener('click', stopTimer);
-      setDurationButton.addEventListener('click', setDuration);
-
-      // Initialize the timer display and pie chart
-      timerDisplay.textContent = formatTime(currentDuration);
-      updatePieChart();
-
-      // Rename item
-      document.querySelectorAll('.rename-button').forEach(button => {
-        button.addEventListener('click', () => {
-          const id = button.getAttribute('data-id');
-          const newName = document.querySelector(`.track-name[data-id="${id}"]`).value;
-          
-          fetch(`/music/rename/${id}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ newName })
-          })
-          .then(response => response.json())
-          .then(data => alert(data.message))
-          .catch(error => console.error('Error renaming item:', error));
-        });
-      });
-
-      // Delete item
-      document.querySelectorAll('.delete-button').forEach(button => {
-        button.addEventListener('click', () => {
-          const id = button.getAttribute('data-id');
-          
-          fetch(`/music/delete/${id}`, { method: 'DELETE' })
-          .then(response => response.json())
-          .then(data => {
-            alert(data.message);
-            if (data.success) {
-              document.getElementById(`sound-${id}`).remove();
-            }
-          })
-          .catch(error => console.error('Error deleting item:', error));
-        });
-      });
-
-      const token = '<%= accessToken %>';
-      let currentTrackUri = null;
-      let player; // Declare player variable outside the function
-
-      function initializePlayer() {
-        player = new Spotify.Player({
-          name: 'Web Playback SDK',
-          getOAuthToken: cb => { cb(token); }
-        });
-
-        player.connect().then(success => {
-          if (success) {
-            console.log('The Web Playback SDK successfully connected to Spotify!');
-            player.addListener('ready', ({ device_id }) => {
-              console.log('Ready with Device ID', device_id);
-
-              fetch(`https://api.spotify.com/v1/me/player`, {
-                method: 'PUT',
-                headers: {
-                  'Authorization': `Bearer ${token}`,
-                  'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ device_ids: [device_id], play: false })
-              }).catch(error => console.error('Error setting active device:', error));
-            });
-          }
-        });
-
-        player.addListener('initialization_error', ({ message }) => { console.error(message); });
-        player.addListener('authentication_error', ({ message }) => { console.error(message); });
-        player.addListener('account_error', ({ message }) => { console.error(message); });
-        player.addListener('playback_error', ({ message }) => { console.error(message); });
-
-        player.addListener('not_ready', ({ device_id }) => {
-          console.log('Device ID has gone offline', device_id);
-          // Attempt to reconnect the player
-          player.connect().then(success => {
-            if (success) {
-              console.log('Reconnected to Spotify!');
-            }
-          });
-        });
-
-        document.querySelectorAll('.play-spotify-button').forEach(button => {
-          button.addEventListener('click', () => {
-            const uri = button.getAttribute('data-uri');
-            const isPlaying = button.textContent === 'Pause';
-
-            if (isPlaying) {
-              player.pause().then(() => {
-                button.textContent = 'Play';
-                currentTrackUri = null;
-              }).catch(error => console.error('Error pausing track:', error));
-            } else {
-              if (currentTrackUri && currentTrackUri !== uri) {
-                player.pause().then(() => {
-                  document.querySelector(`button[data-uri="${currentTrackUri}"]`).textContent = 'Play';
-                }).catch(error => console.error('Error pausing current track:', error));
-              }
-              fetch(`https://api.spotify.com/v1/me/player/play`, {
-                method: 'PUT',
-                headers: {
-                  'Authorization': `Bearer ${token}`,
-                  'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ uris: [uri] })
-              }).then(() => {
-                button.textContent = 'Pause';
-                currentTrackUri = uri;
-              }).catch(error => console.error('Error playing track:', error));
-            }
-          });
-        });
-      }
-
-      window.onSpotifyWebPlaybackSDKReady = initializePlayer;
-    });
-  </script>
+  <!-- Link to script.js -->
+  <script src="/script.js"></script>
 </body>
 </html>

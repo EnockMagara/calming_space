@@ -1,152 +1,256 @@
-body, input, button {
-  font-size: 16px;
+/* Define color variables */
+:root {
+  --primary: #16A085; /* Teal for primary elements */
+  --secondary: #43CEA2; /* Soft green for secondary elements */
+  --accent: #2980B9; /* Muted blue for accents */
+  --background-gradient: linear-gradient(to bottom right, #AED6F1, #D5F5E3);
+  --card-bg: rgba(255, 255, 255, 0.9); /* Semi-transparent white */
+  --text-color: #2C3E50; /* Dark gray for text */
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  --border-gray: #eee; /* Light gray for borders */
+  --secondary-gray: #6c757d; /* Medium gray for secondary buttons */
 }
 
+/* Apply blurred background */
 body {
+  background: var(--background-gradient);
+  background-image: url('/images/blurred-nature-image.jpg');
+  background-size: cover;
+  background-attachment: fixed;
+  background-position: center;
+  background-repeat: no-repeat;
+  color: var(--text-color);
   font-family: 'Roboto', sans-serif;
-  background: linear-gradient(to bottom right, #f0f9ff, #dff6fa);
-  color: #333;
   margin: 0;
   padding: 0;
+  min-height: 100vh;
 }
 
+/* Header styling */
 .header {
-  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  background-color: var(--card-bg);
+  box-shadow: var(--shadow);
+  height: 80px;
+}
+
+/* Title styling */
+.title {
+  font-size: 2rem;
+  color: var(--primary);
+  margin: 0;
   text-align: center;
-  padding: 15px;
-  background-color: #e0f7fa;
-  margin-bottom: 15px;
+  flex: 1;
 }
 
-.header .title {
-  font-size: 2em;
-  font-weight: 700;
-  margin-bottom: 20px;
+/* Logo and other header elements */
+.logo {
+  margin-right: 1rem;
+  width: 40px;
+  height: 40px;
 }
 
-.header a {
-  display: inline-block;
-  background-color: #00796b;
+.menu {
+  margin-left: 1rem;
+}
+
+/* Auth links container */
+.auth-links {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Auth buttons (Login, Register, Logout) */
+.auth-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Login button */
+.login-button {
+  background-color: var(--primary);
+  color: #fff;
+}
+
+.login-button:hover {
+  background-color: #126E5A;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Register button */
+.register-button {
+  background-color: var(--secondary);
+  color: #fff;
+}
+
+.register-button:hover {
+  background-color: #3AB88E;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Logout button */
+.logout-button {
+  background-color: var(--secondary-gray);
   color: #fff;
   border: none;
-  border-radius: 4px;
-  padding: 6px 12px;
-  text-decoration: none;
-  transition: background-color 0.3s ease;
-  font-size: 0.9em;
-  margin: 0 5px;
+  cursor: pointer;
 }
 
-.header a:hover {
-  background-color: #004d40;
+.logout-button:hover {
+  background-color: #5a6268;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
-.site-description {
-  height: 400px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  background-color: #e0f7fa;
-  padding: 20px;
-}
-
-h2 {
-  font-size: 1.5em;
-  font-weight: 700;
-  margin-bottom: 15px;
-}
-
-p {
-  font-size: 1em;
-  margin-bottom: 10px;
-}
-
+/* Main content with semi-transparent background */
 .main-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr; /* Three equal columns */
+  gap: 20px; /* Consistent margin between sections */
+  padding: 20px;
+  max-width: 1200px;
+  margin: 20px auto;
+  background-color: var(--card-bg);
+  border-radius: 8px;
+}
+
+/* Play/Pause Button Section */
+#play-pause-button {
+  background-color: var(--secondary);
+  font-size: 1rem;
+  padding: 0.5rem 1rem;
+  border-radius: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  margin: 0 auto 1.5rem;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+  grid-column: 1 / 2; /* Position in the first column */
+}
+
+#play-pause-button:hover {
+  background-color: #3AB88E;
+  transform: scale(1.05);
+}
+
+#play-pause-button.pulsing {
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+/* Mindfulness Timer */
+.mindfulness-timer {
+  background-color: #ffffff;
+  border-radius: 40px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 300px;
+  transition: transform 0.3s ease;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
-  min-height: 100vh;
-  padding: 20px;
+  grid-column: 2 / 3; /* Center column for prominence */
 }
 
+/* White Noise Section */
+.ambient-sounds {
+  grid-column: 3 / 4; /* Third column */
+}
+
+/* Available Tracks Section */
+.available-music {
+  grid-column: 1 / 2; /* First column */
+}
+
+/* Spotify Section */
+.spotify-tracks {
+  grid-column: 3 / 4; /* Third column */
+}
+
+/* Card styling */
 .card {
-  background-color: rgba(224, 247, 250, 0.8);
+  background-color: #ffffff;
   border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-  margin-bottom: 20px;
+  box-shadow: var(--shadow);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
-.card:hover {
-  transform: translateY(-5px);
+/* Section headings with icons */
+h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--primary);
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
 }
 
+/* Sound controls and tracks */
 .sound-controls, .music-tracks {
   display: flex;
   flex-direction: column;
+  gap: 1rem; /* 10px spacing between elements */
+}
+
+.sound-control, .track {
+  display: flex;
   align-items: center;
-}
-
-.sound-control, .track, .kindness-controls, .duration-input {
-  margin: 15px 0;
-}
-
-button {
-  background-color: #00796b;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  padding: 6px 12px;
-  cursor: pointer;
+  gap: 0.75rem; /* 12px spacing between elements within a control */
+  padding: 0.5rem;
+  border-radius: 5px;
   transition: background-color 0.3s ease;
-  font-size: 0.9em;
 }
 
-button:hover {
-  background-color: #004d40;
+.sound-control:hover, .track:hover {
+  background-color: rgba(22, 160, 133, 0.1);
 }
 
-@media (min-width: 768px) {
-  .main-content {
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
+.sound-control img, .track img {
+  width: 24px;
+  height: 24px;
 }
 
-.ambient-sounds {
-  position: absolute;
-  top: 20%;
-  right: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background-color: rgba(224, 247, 250, 0.8);
-  border-radius: 50px 0 0 50px;
-  padding: 20px;
-  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+.sound-control label, .track .track-name {
+  flex: 1;
+  font-size: 1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
 }
 
-.sound-control {
-  margin: 15px 0;
-  display: flex;
-  align-items: center;
-}
-
-.sound-control label {
-  margin-right: 10px;
-  font-weight: bold;
-}
-
+/* Sliders */
 input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
-  width: 100px;
-  height: 8px;
-  background: #ddd;
+  width: 150px;
+  height: 4px;
+  background: var(--border-gray);
   border-radius: 5px;
   outline: none;
   transition: background 0.3s ease;
@@ -155,414 +259,229 @@ input[type="range"] {
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 16px;
-  height: 16px;
-  background: #00796b;
+  width: 20px;
+  height: 20px;
+  background: var(--primary);
   border-radius: 50%;
   cursor: pointer;
-  transition: background 0.3s ease;
+  transition: transform 0.3s ease;
 }
 
 input[type="range"]::-moz-range-thumb {
-  appearance: none;
-  width: 16px;
-  height: 16px;
-  background: #00796b;
+  width: 20px;
+  height: 20px;
+  background: var(--primary);
   border-radius: 50%;
   cursor: pointer;
-  transition: background 0.3s ease;
-}
-
-input[type="range"]:hover {
-  background: #ccc;
-}
-
-input[type="range"]::-webkit-slider-thumb:hover {
-  background: #004d40;
-}
-
-input[type="range"]::-moz-range-thumb:hover {
-  background: #004d40;
-}
-
-.kindness-share {
-  background-color: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  margin: 10px;
-  padding: 20px;
-  width: 90%;
-  max-width: 400px;
   transition: transform 0.3s ease;
-  max-width: 400px;
-  margin: 0 auto;
-  opacity: 1;
-  transition: opacity 0.5s ease, transform 0.5s ease;
-  position: relative;
 }
 
-.kindness-share:hover {
-  transform: translateY(-5px);
+input[type="range"]:hover::-webkit-slider-thumb {
+  transform: scale(1.2);
 }
 
-.kindness-share.fade-out {
-  opacity: 0;
-  transform: translateY(-20px);
+input[type="range"]:hover::-moz-range-thumb {
+  transform: scale(1.2);
 }
 
-.kindness-controls {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+/* Timer container for SVG */
+.timer-container {
+  margin: 0 auto 1rem;
 }
 
-.kindness-controls input[type="text"] {
-  margin-bottom: 10px;
-  padding: 10px;
-  width: 100%;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+/* SVG timer */
+#timer-svg {
+  width: clamp(100px, 20vw, 150px);
+  height: clamp(100px, 20vw, 150px);
 }
 
-.kindness-controls button {
-  background-color: #00796b;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  padding: 10px 20px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
+/* Progress circle animation */
+#progress-circle {
+  transition: stroke-dashoffset 1s linear;
 }
 
-.kindness-controls button:hover {
-  background-color: #004d40;
-}
-
-.mindfulness-timer {
-  background-color: #ffffff;
-  border-radius: 40px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  margin: 10px;
-  padding: 25px;
-  width: 80%;
-  max-width: 300px;
-  transition: transform 0.3s ease;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.mindfulness-timer:hover {
-  transform: translateY(-5px);
-}
-
-.timer-display {
-  font-size: 1.5em;
-  margin-bottom: 15px;
-  color: #333;
-  text-align: center;
-}
-
+/* Duration input */
 .duration-input {
-  margin-bottom: 20px;
+  margin-bottom: 1rem;
   display: flex;
   justify-content: center;
   align-items: center;
+  gap: 0.5rem;
 }
 
 .duration-input input {
-  padding: 8px;
-  font-size: 0.9em;
-  width: 50px;
-  border: 1px solid #ccc;
+  padding: 0.5rem;
+  font-size: 0.9rem;
+  width: 60px;
+  border: 1px solid var(--border-gray);
   border-radius: 5px;
-  margin-right: 10px;
 }
 
 .duration-input button {
-  padding: 8px 16px;
-  font-size: 0.9em;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-  background: linear-gradient(135deg, #43cea2, #185a9d);
-  color: #fff;
+  padding: 0.5rem 1rem;
+  background-color: var(--secondary-gray);
 }
 
 .duration-input button:hover {
-  background: linear-gradient(135deg, #185a9d, #43cea2);
+  background-color: #5a6268;
 }
 
-.button-group {
+/* Buttons container */
+.buttons {
   display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 10px;
+  gap: 0.5rem;
 }
 
-.pie-chart {
-  width: 150px;
-  height: 150px;
-  border-radius: 50%;
-  background: conic-gradient(#43cea2 0%, #185a9d 0%);
-  margin: 0 auto 15px;
-  position: relative;
-}
-
-.pie-chart::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 120px;
-  height: 120px;
-  background: #fff;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.animated-message {
-  position: fixed;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: #00796b;
-  color: #fff;
-  padding: 10px 20px;
-  border-radius: 5px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  opacity: 0;
-  transition: opacity 0.5s ease, transform 0.5s ease;
-  z-index: 1000;
-}
-
-.animated-message.show {
-  opacity: 1;
-  transform: translateX(-50%) translateY(20px);
-}
-
-.kind-message {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  background-color: #00796b;
-  color: #fff;
-  padding: 10px;
-  border-radius: 8px 8px 0 0;
-  opacity: 0;
-  transition: opacity 0.5s ease;
-}
-
-.kind-message.show {
-  opacity: 1;
-}
-
-.icon-button {
-  position: absolute;
-  top: 250px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 60px;
-  height: 60px;
-  background-color: #fdd835;
-  border: none;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  transition: background-color 0.3s ease;
-  font-size: 24px; /* Icon size */
-  color: white; /* Icon color */
-}
-
-.icon-button:hover {
-  background-color: #fbc02d;
-}
-
-.background-quote {
-  position: fixed; /* Fixed position to stay in the background */
-  top: 50%; /* Center vertically */
-  left: 50%; /* Center horizontally */
-  transform: translate(-50%, -50%); /* Adjust for perfect centering */
-  font-size: 4em; /* Large font size */
-  color: rgba(0, 0, 0, 0.1); /* Light color for background effect */
-  text-align: center; /* Center text alignment */
-  z-index: -1; /* Ensure it stays in the background */
-  pointer-events: none; /* Allow clicks to pass through */
-  width: 80%; /* Limit width for better readability */
-  line-height: 1.2; /* Adjust line height for readability */
-}
-
-.page-separator {
-  width: 100%;
-  height: 50px;
-  background-color: #e0f7fa;
-  margin: 20px 0;
-}
-
-.quote {
-  font-family: 'Cursive', sans-serif;
-  font-size: 1.5em;
-  color: #555;
-  margin-top: 10px;
-}
-
-.logout-form {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-}
-
-.logout-form button {
-  background-color: #00796b;
+/* Updated button styles for Mindfulness Timer */
+button {
+  background-color: var(--primary);
   color: #fff;
   border: none;
-  border-radius: 4px;
-  padding: 6px 12px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.logout-form button:hover {
-  background-color: #004d40;
-}
-
-.quotes-container {
-  position: relative;
-  overflow: hidden; /* Hide overflow for smooth animation */
-  width: 100%;
-  height: 50px; /* Adjust height as needed */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.quotes-container p {
-  font-family: 'Cursive', sans-serif; /* Artistic font */
-  font-size: 2em; /* Larger font size */
-  color: #333; /* Text color */
-  white-space: nowrap; /* Prevent text wrapping */
-  animation: moveQuote 10s linear infinite; /* Animation settings */
-}
-
-@keyframes moveQuote {
-  0% {
-    transform: translateX(10%); /* Start off-screen to the right */
-  }
-  100% {
-    transform: translateX(-10%); /* Move off-screen to the left */
-  }
-}
-
-.available-music {
-  position: absolute;
-  top: 60%;
-  left: 20px;
-  transform: translateY(-50%);
-  background-color: rgba(224, 247, 250, 0.8);
   border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-  width: 300px;
-  z-index: 100;
-  border-radius: 0 50px 50px 0;
-}
-
-.track {
-  display: flex;
-  align-items: center;
-  margin-bottom: 10px;
-  opacity: 1;
-  transition: opacity 0.5s ease;
-}
-
-.track.hidden {
-  opacity: 0;
-}
-
-.play-spotify-button {
-  margin-right: 10px;
-}
-
-.spotify-tracks {
-  position: static;
-  width: 100%;
-  max-width: 400px;
-  margin-top: 40px;
-}
-
-.login-container,
-.register-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  background: linear-gradient(to bottom right, #f0f9ff, #dff6fa);
-  padding: 20px;
-}
-
-.login-container h1,
-.register-container h1 {
-  font-size: 2em;
-  margin-bottom: 20px;
-  color: #333;
-}
-
-.login-container form,
-.register-container form {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background-color: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.login-container input,
-.register-container input {
-  margin-bottom: 15px;
-  padding: 10px;
-  width: 100%;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-.login-container button,
-.register-container button {
-  background-color: #00796b;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  padding: 10px 20px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.9rem;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
 }
 
-.login-container button:hover,
-.register-container button:hover {
-  background-color: #004d40;
+button:hover {
+  background-color: #126E5A;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
-.login-container p {
-  margin-top: 15px;
+/* Secondary Buttons for Mindfulness Timer */
+#set-duration-button, #pause-button, #stop-button {
+  background-color: var(--secondary-gray);
 }
 
-.login-container a {
-  color: #00796b;
-  text-decoration: none;
+#set-duration-button:hover, #pause-button:hover, #stop-button:hover {
+  background-color: #5a6268;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
-.login-container a:hover {
-  text-decoration: underline;
+/* Ensure icons inside buttons are properly sized */
+button i {
+  font-size: 1rem;
 }
 
-.error-message {
-  color: red;
-  margin-bottom: 10px;
+/* Spotify section */
+.spotify-tracks p, .spotify-tracks a {
+  color: var(--primary);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .main-content {
+    grid-template-columns: 1fr 1fr; /* Two columns */
+    gap: 15px;
+    padding: 15px;
+    margin: 15px auto;
+  }
+
+  #play-pause-button {
+    grid-column: 1 / 2; /* First column */
+  }
+
+  .mindfulness-timer {
+    grid-column: 2 / 3; /* Second column */
+  }
+
+  .ambient-sounds {
+    grid-column: 1 / 2; /* First column */
+  }
+
+  .available-music {
+    grid-column: 2 / 3; /* Second column */
+  }
+
+  .spotify-tracks {
+    grid-column: 1 / 2; /* First column */
+  }
+
+  .header { height: 60px; padding: 0.75rem; }
+  .title { font-size: 1.5rem; }
+  .logo { width: 32px; height: 32px; }
+  .auth-button { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
+  h2 { font-size: 1.3rem; }
+  .sound-control label, .track .track-name { font-size: 0.9rem; max-width: 150px; }
+  input[type="range"] { width: 120px; }
+  #play-pause-button { font-size: 0.9rem; padding: 0.4rem 0.8rem; }
+  .mindfulness-timer { padding: 1rem; max-width: 250px; }
+  .duration-input input { width: 50px; font-size: 0.8rem; }
+  .duration-input button { padding: 0.4rem 0.8rem; }
+  button { padding: 0.3rem 0.6rem; font-size: 0.8rem; }
+  button i { font-size: 0.9rem; }
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    grid-template-columns: 1fr; /* One column */
+    gap: 10px;
+    padding: 10px;
+    margin: 10px auto;
+  }
+
+  #play-pause-button {
+    grid-column: 1 / 2; /* Full width */
+  }
+
+  .mindfulness-timer {
+    grid-column: 1 / 2; /* Full width */
+  }
+
+  .ambient-sounds {
+    grid-column: 1 / 2; /* Full width */
+  }
+
+  .available-music {
+    grid-column: 1 / 2; /* Full width */
+  }
+
+  .spotify-tracks {
+    grid-column: 1 / 2; /* Full width */
+  }
+
+  .header { flex-wrap: wrap; height: auto; padding: 0.5rem; }
+  .title { font-size: 1.2rem; flex: none; width: 100%; margin: 0.5rem 0; }
+  .logo { width: 28px; height: 28px; }
+  .auth-links { gap: 0.3rem; }
+  .auth-button { padding: 0.3rem 0.6rem; font-size: 0.7rem; }
+  h2 { font-size: 1.1rem; }
+  .sound-control, .track { flex-wrap: wrap; }
+  .sound-control label, .track .track-name { font-size: 0.8rem; max-width: 100%; }
+  .sound-control img, .track img { width: 20px; height: 20px; }
+  input[type="range"] { width: 100%; }
+  #play-pause-button { font-size: 0.8rem; padding: 0.3rem 0.6rem; }
+  .mindfulness-timer { padding: 0.75rem; max-width: 200px; }
+  #timer-svg { width: clamp(80px, 15vw, 120px); height: clamp(80px, 15vw, 120px); }
+  #timer-text { font-size: 16px; }
+  .duration-input { gap: 0.3rem; }
+  .duration-input input { width: 40px; font-size: 0.7rem; }
+  .duration-input button { padding: 0.3rem 0.6rem; }
+  .buttons { gap: 0.3rem; }
+  button { padding: 0.2rem 0.4rem; font-size: 0.7rem; }
+  button i { font-size: 0.8rem; }
+}
+
+@media (max-width: 480px) {
+  .header { padding: 0.5rem; }
+  .title { font-size: 1rem; }
+  .logo { width: 24px; height: 24px; }
+  .auth-button { padding: 0.2rem 0.4rem; font-size: 0.6rem; }
+  .main-content { padding: 5px; margin: 5px auto; }
+  .card { padding: 0.75rem; }
+  h2 { font-size: 1rem; }
+  .sound-control label, .track .track-name { font-size: 0.7rem; }
+  .sound-control img, .track img { width: 16px; height: 16px; }
+  #play-pause-button { font-size: 0.7rem; padding: 0.2rem 0.4rem; }
+  .mindfulness-timer { padding: 0.5rem; max-width: 180px; }
+  #timer-svg { width: clamp(60px, 12vw, 100px); height: clamp(60px, 12vw, 100px); }
+  #timer-text { font-size: 14px; }
+  .duration-input input { width: 35px; font-size: 0.6rem; }
+  .duration-input button { padding: 0.2rem 0.4rem; }
+  button { padding: 0.15rem 0.3rem; font-size: 0.6rem; }
+  button i { font-size: 0.7rem; }
 }

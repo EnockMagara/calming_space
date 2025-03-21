@@ -8,7 +8,6 @@ import authRoutes from './src/routes/auth.mjs';
 import connectDB from './src/config/db.mjs';
 import dashboardRoutes from './src/routes/dashboard.mjs';
 import musicRoutes from './src/routes/music.mjs';
-import messagesRoutes from './src/routes/messages.mjs';
 import adminRoutes from './src/routes/admin.mjs';
 
 // Load environment variables
@@ -39,7 +38,6 @@ app.use(passport.session());
 app.use('/', authRoutes);
 app.use('/', dashboardRoutes);
 app.use('/music', musicRoutes);
-app.use('/api', messagesRoutes);
 app.use('/admin', adminRoutes);
 
 // Define root route
