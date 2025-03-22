@@ -21,7 +21,7 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
-        cache: 'npm' # Cache npm dependencies automatically
+        cache: 'npm'
 
     - name: Cache Jest results
       uses: actions/cache@v3
@@ -33,56 +33,192 @@ jobs:
 
     - name: Install dependencies
       run: npm ci
-      
+
+    - name: Run linting
+      run: npm run lint
+
     - name: Run tests
-      run: npm test -- --cache # Enable Jest caching
+      run: npm test -- --cache
       env:
         MONGODB_URI: ${{ secrets.MONGODB_URI }}
         SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
         SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
         SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
 
-  deploy:
+  deploy-staging:
     needs: test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
 
     steps:
     - uses: actions/checkout@v3
-    
-    - name: Deploy to server
-      uses: appleboy/ssh-action@master
+
+    - name: Validate environment variables
+      run: |
+        if [ -z "${{ secrets.MONGODB_URI }}" ]; then
+          echo "MONGODB_URI is not set"
+          exit 1
+        fi
+        if [ -z "${{ secrets.SESSION_SECRET }}" ]; then
+          echo "SESSION_SECRET is not set"
+          exit 1
+        fi
+        if [ -z "${{ secrets.SPOTIFY_CLIENT_ID }}" ]; then
+          echo "SPOTIFY_CLIENT_ID is not set"
+          exit 1
+        fi
+        if [ -z "${{ secrets.SPOTIFY_CLIENT_SECRET }}" ]; then
+          echo "SPOTIFY_CLIENT_SECRET is not set"
+          exit 1
+        fi
+        if [ -z "${{ secrets.SERVER_HOST }}" ]; then
+          echo "SERVER_HOST is not set"
+          exit 1
+        fi
+        if [ -z "${{ secrets.SERVER_USERNAME }}" ]; then
+          echo "SERVER_USERNAME is not set"
+          exit 1
+        fi
+        if [ -z "${{ secrets.SSH_PRIVATE_KEY }}" ]; then
+          echo "SSH_PRIVATE_KEY is not set"
+          exit 1
+        fi
+
+    - name: Debug SSH key and connection details
+      run: |
+        echo "SSH_PRIVATE_KEY starts with: $(echo '${{ secrets.SSH_PRIVATE_KEY }}' | head -n 1)"
+        echo "SSH_PRIVATE_KEY ends with: $(echo '${{ secrets.SSH_PRIVATE_KEY }}' | tail -n 1)"
+        echo "SSH_PRIVATE_KEY length: $(echo '${{ secrets.SSH_PRIVATE_KEY }}' | wc -c)"
+        echo "Connecting to host: ${{ secrets.SERVER_HOST }}"
+        echo "Using username: ${{ secrets.SERVER_USERNAME }}"
+
+    - name: Deploy to staging
+      uses: appleboy/ssh-action@v1
       with:
         host: ${{ secrets.SERVER_HOST }}
         username: ${{ secrets.SERVER_USERNAME }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
-          # Create app directory if it doesn't exist
-          mkdir -p /root/calming_space
-          
-          # Navigate to app directory
-          cd /root/calming_space
-          
-          # Clone/pull the repository
+          echo "Connected to $(hostname) as $(whoami)"
+          echo "Contents of authorized_keys:"
+          cat /root/.ssh/authorized_keys || echo "Failed to read authorized_keys"
+          mkdir -p /root/calming_space_staging
+          cd /root/calming_space_staging
           if [ -d ".git" ]; then
             git pull origin main
           else
             git clone https://github.com/enockmagara/calming_space.git .
           fi
-          
-          # Install dependencies
           npm install
-          
-          # Install PM2 globally if not installed
           if ! command -v pm2 &> /dev/null; then
             npm install -g pm2
           fi
-          
-          # Create/Update environment variables
           echo "MONGODB_URI=${{ secrets.MONGODB_URI }}" > .env
           echo "SESSION_SECRET=${{ secrets.SESSION_SECRET }}" >> .env
           echo "SPOTIFY_CLIENT_ID=${{ secrets.SPOTIFY_CLIENT_ID }}" >> .env
           echo "SPOTIFY_CLIENT_SECRET=${{ secrets.SPOTIFY_CLIENT_SECRET }}" >> .env
-          
-          # Start/Restart the application with PM2
-          pm2 restart app.mjs || pm2 start app.mjs --name "app"
+          # Use reload for zero-downtime in staging
+          pm2 reload ecosystem.config.mjs --name "calming-space-staging" -- --port 2114 || pm2 start ecosystem.config.mjs --name "calming-space-staging" -- --port 2114
+          pm2 save
+
+    - name: Health check (staging)
+      uses: appleboy/ssh-action@v1
+      with:
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USERNAME }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          sleep 5
+          pm2 status calming-space-staging | grep online || (echo "Staging application is not running" && exit 1)
+          curl --retry 3 --retry-delay 5 --fail http://localhost:2114/ || (echo "Staging application is not responding" && exit 1)
+
+  deploy-production:
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Validate environment variables
+      run: |
+        if [ -z "${{ secrets.MONGODB_URI }}" ]; then
+          echo "MONGODB_URI is not set"
+          exit 1
+        fi
+        if [ -z "${{ secrets.SESSION_SECRET }}" ]; then
+          echo "SESSION_SECRET is not set"
+          exit 1
+        fi
+        if [ -z "${{ secrets.SPOTIFY_CLIENT_ID }}" ]; then
+          echo "SPOTIFY_CLIENT_ID is not set"
+          exit 1
+        fi
+        if [ -z "${{ secrets.SPOTIFY_CLIENT_SECRET }}" ]; then
+          echo "SPOTIFY_CLIENT_SECRET is not set"
+          exit 1
+        fi
+        if [ -z "${{ secrets.SERVER_HOST }}" ]; then
+          echo "SERVER_HOST is not set"
+          exit 1
+        fi
+        if [ -z "${{ secrets.SERVER_USERNAME }}" ]; then
+          echo "SERVER_USERNAME is not set"
+          exit 1
+        fi
+        if [ -z "${{ secrets.SSH_PRIVATE_KEY }}" ]; then
+          echo "SSH_PRIVATE_KEY is not set"
+          exit 1
+        fi
+    
+    - name: Debug SSH key and connection details
+      run: |
+        echo "SSH_PRIVATE_KEY starts with: $(echo '${{ secrets.SSH_PRIVATE_KEY }}' | head -n 1)"
+        echo "SSH_PRIVATE_KEY ends with: $(echo '${{ secrets.SSH_PRIVATE_KEY }}' | tail -n 1)"
+        echo "SSH_PRIVATE_KEY length: $(echo '${{ secrets.SSH_PRIVATE_KEY }}' | wc -c)"
+        echo "Connecting to host: ${{ secrets.SERVER_HOST }}"
+        echo "Using username: ${{ secrets.SERVER_USERNAME }}"
+
+    - name: Deploy to production
+      uses: appleboy/ssh-action@v1
+      with:
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USERNAME }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          echo "Connected to $(hostname) as $(whoami)"
+          echo "Contents of authorized_keys:"
+          cat /root/.ssh/authorized_keys || echo "Failed to read authorized_keys"
+          mkdir -p /root/calming_space
+          cd /root/calming_space
+          if [ -d ".git" ]; then
+            echo "Backing up current application..."
+            cp -r /root/calming_space /root/calming_space_backup || true
+          fi
+          if [ -d ".git" ]; then
+            git pull origin main || (echo "Git pull failed, rolling back..." && cp -r /root/calming_space_backup /root/calming_space && exit 1)
+          else
+            git clone https://github.com/enockmagara/calming_space.git . || (echo "Git clone failed" && exit 1)
+          fi
+          npm install || (echo "npm install failed, rolling back..." && cp -r /root/calming_space_backup /root/calming_space && exit 1)
+          if ! command -v pm2 &> /dev/null; then
+            npm install -g pm2
+          fi
+          echo "MONGODB_URI=${{ secrets.MONGODB_URI }}" > .env
+          echo "SESSION_SECRET=${{ secrets.SESSION_SECRET }}" >> .env
+          echo "SPOTIFY_CLIENT_ID=${{ secrets.SPOTIFY_CLIENT_ID }}" >> .env
+          echo "SPOTIFY_CLIENT_SECRET=${{ secrets.SPOTIFY_CLIENT_SECRET }}" >> .env
+          # Use reload for zero-downtime in production
+          pm2 reload ecosystem.config.mjs --name "calming-space" || pm2 start ecosystem.config.mjs --name "calming-space"
+          pm2 save
+
+    - name: Health check (production)
+      uses: appleboy/ssh-action@v1
+      with:
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USERNAME }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          sleep 5
+          pm2 status calming-space | grep online || (echo "Application is not running, rolling back..." && cp -r /root/calming_space_backup /root/calming_space && pm2 restart ecosystem.config.mjs && exit 1)
+          curl --retry 3 --retry-delay 5 --fail http://localhost:2113/ || (echo "Application is not responding, rolling back..." && cp -r /root/calming_space_backup /root/calming_space && pm2 restart ecosystem.config.mjs && exit 1)

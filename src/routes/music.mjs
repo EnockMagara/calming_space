@@ -3,7 +3,7 @@ import path from 'path';
 import express from 'express';
 import multer from 'multer';
 import { fileURLToPath } from 'url';
-import { checkAdmin } from '../authMiddleware.mjs';
+import { checkAdmin, ensureAuthenticated } from '../authMiddleware.mjs';
 import { Music } from '../models/music.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -14,18 +14,29 @@ const router = express.Router();
 // Configure multer to save files to the correct 'public/audio' directory
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, '../../public/audio')); // Adjusted path
+    cb(null, path.join(__dirname, '../../public/audio'));
   },
   filename: (req, file, cb) => {
-    cb(null, file.originalname); // Use original file name
+    cb(null, file.originalname);
   }
 });
 
 const upload = multer({ storage });
 
+// Base route for /music
+router.get('/', ensureAuthenticated, async (req, res) => {
+  try {
+    const musicList = await Music.find({ type: 'music' });
+    res.render('music.ejs', { musicList }); // Ensure you have a music.ejs view
+  } catch (error) {
+    console.error('Error fetching music list:', error);
+    res.status(500).send('Server error');
+  }
+});
+
 // GET route to render the upload form
 router.get('/upload', checkAdmin, (req, res) => {
-  res.render('upload.ejs'); // Render the upload form
+  res.render('upload.ejs');
 });
 
 // POST route to handle file upload
@@ -43,10 +54,7 @@ router.post('/upload', checkAdmin, (req, res, next) => {
       return res.status(400).json({ success: false, message: 'No file uploaded.' });
     }
     
-    // Log the uploaded file details
     console.log('Uploaded file:', req.file);
-
-    // Log the path where the file is expected to be saved
     const expectedFilePath = path.join(__dirname, '../../public/audio', req.file.originalname);
     console.log('Expected file path:', expectedFilePath);
 
