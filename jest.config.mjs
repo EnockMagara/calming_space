@@ -1,9 +1,11 @@
 export default {
   testEnvironment: 'node',
-  transform: {},
-  extensionsToTreatAsEsm: ['.js', '.mjs'],
-  moduleNameMapper: {
-    '^(\\.{1,2}/.*)\\.js$': '$1',
+  transform: {
+    '^.+\\.m?js$': 'babel-jest'
   },
+  moduleFileExtensions: ['js', 'mjs'],
   testMatch: ['**/__tests__/**/*.mjs', '**/?(*.)+(spec|test).mjs'],
+  transformIgnorePatterns: [
+    '/node_modules/(?!(@babel/runtime)/)'
+  ]
 }; 
