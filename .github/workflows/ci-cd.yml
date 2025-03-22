@@ -114,9 +114,9 @@ jobs:
           echo "SESSION_SECRET=${{ secrets.SESSION_SECRET }}" >> .env
           echo "SPOTIFY_CLIENT_ID=${{ secrets.SPOTIFY_CLIENT_ID }}" >> .env
           echo "SPOTIFY_CLIENT_SECRET=${{ secrets.SPOTIFY_CLIENT_SECRET }}" >> .env
-          # Set NODE_ENV to staging to use env_staging in ecosystem.config.mjs
+          # Set NODE_ENV to staging to use env_staging in ecosystem.config.cjs
           export NODE_ENV=staging
-          pm2 reload ecosystem.config.mjs --name "calming-space-staging" || pm2 start ecosystem.config.mjs --name "calming-space-staging"
+          pm2 reload ecosystem.config.cjs --name "calming-space-staging" || pm2 start ecosystem.config.cjs --name "calming-space-staging"
           pm2 save
           echo "Recent PM2 logs for calming-space-staging:"
           pm2 logs calming-space-staging --lines 20 || echo "Failed to retrieve PM2 logs"
@@ -208,7 +208,7 @@ jobs:
           echo "SESSION_SECRET=${{ secrets.SESSION_SECRET }}" >> .env
           echo "SPOTIFY_CLIENT_ID=${{ secrets.SPOTIFY_CLIENT_ID }}" >> .env
           echo "SPOTIFY_CLIENT_SECRET=${{ secrets.SPOTIFY_CLIENT_SECRET }}" >> .env
-          pm2 reload ecosystem.config.mjs --name "calming-space" || pm2 start ecosystem.config.mjs --name "calming-space"
+          pm2 reload ecosystem.config.cjs --name "calming-space" || pm2 start ecosystem.config.cjs --name "calming-space"
           pm2 save
 
     - name: Health check (production)
@@ -219,5 +219,5 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
           sleep 5
-          pm2 status calming-space | grep online || (echo "Application is not running, rolling back..." && cp -r /root/calming_space_backup /root/calming_space && pm2 restart ecosystem.config.mjs && exit 1)
-          curl --retry 3 --retry-delay 5 --fail http://localhost:2113/ || (echo "Application is not responding, rolling back..." && cp -r /root/calming_space_backup /root/calming_space && pm2 restart ecosystem.config.mjs && exit 1)
+          pm2 status calming-space | grep online || (echo "Application is not running, rolling back..." && cp -r /root/calming_space_backup /root/calming_space && pm2 restart ecosystem.config.cjs && exit 1)
+          curl --retry 3 --retry-delay 5 --fail http://localhost:2113/ || (echo "Application is not responding, rolling back..." && cp -r /root/calming_space_backup /root/calming_space && pm2 restart ecosystem.config.cjs && exit 1)
