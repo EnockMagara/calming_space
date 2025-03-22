@@ -26,16 +26,20 @@ export function initialize(passport) {
     }
   });
 
+  const port = process.env.PORT || 2113;
+  const callbackURL = `http://68.183.100.82:${port}/auth/spotify/callback`;
+
   passport.use(new SpotifyStrategy({
     clientID: process.env.SPOTIFY_CLIENT_ID,
     clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-    callbackURL: 'http://68.183.100.82:2113/auth/spotify/callback'
+    callbackURL: callbackURL
   },
   async (accessToken, refreshToken, expires_in, profile, done) => {
     try {
       console.log('Spotify Profile:', profile);
       console.log('Access Token:', accessToken);
       console.log('Refresh Token:', refreshToken);
+      console.log('Using callback URL:', callbackURL);
 
       let user = await User.findOne({ spotifyId: profile.id });
       if (!user) {

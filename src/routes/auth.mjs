@@ -4,6 +4,8 @@ import { User } from '../models/user.mjs'; // Import User model
 import { checkAuthenticated, checkNotAuthenticated } from '../authMiddleware.mjs'; // Import middleware
 
 const router = express.Router();
+const port = process.env.PORT || 2113;
+const baseUrl = `http://68.183.100.82:${port}`;
 
 // Login route
 router.get('/login', checkNotAuthenticated, (req, res) => {
@@ -60,9 +62,9 @@ router.get('/auth/spotify', passport.authenticate('spotify', {
 
 // Spotify callback route
 router.get('/auth/spotify/callback', passport.authenticate('spotify', {
-  failureRedirect: 'http://68.183.100.82:2113/login'
+  failureRedirect: `${baseUrl}/login`
 }), (req, res) => {
-  res.redirect('http://68.183.100.82:2113/dashboard'); // Redirect to dashboard on successful login
+  res.redirect(`${baseUrl}/dashboard`); // Redirect to dashboard on successful login
 });
 
 export default router;
