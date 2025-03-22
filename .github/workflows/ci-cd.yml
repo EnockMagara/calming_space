@@ -118,8 +118,6 @@ jobs:
           export NODE_ENV=staging
           pm2 reload ecosystem.config.cjs || pm2 start ecosystem.config.cjs
           pm2 save
-          echo "Recent PM2 logs for calming-space-staging:"
-          pm2 logs calming-space-staging --lines 20 || echo "Failed to retrieve PM2 logs"
 
     - name: Health check (staging)
       uses: appleboy/ssh-action@v1
