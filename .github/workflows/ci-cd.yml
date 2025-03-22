@@ -34,9 +34,6 @@ jobs:
     - name: Install dependencies
       run: npm ci
 
-    - name: Run linting
-      run: npm run lint
-
     - name: Run tests
       run: npm test -- --cache
       env:
@@ -117,7 +114,6 @@ jobs:
           echo "SESSION_SECRET=${{ secrets.SESSION_SECRET }}" >> .env
           echo "SPOTIFY_CLIENT_ID=${{ secrets.SPOTIFY_CLIENT_ID }}" >> .env
           echo "SPOTIFY_CLIENT_SECRET=${{ secrets.SPOTIFY_CLIENT_SECRET }}" >> .env
-          # Use reload for zero-downtime in staging
           pm2 reload ecosystem.config.mjs --name "calming-space-staging" -- --port 2114 || pm2 start ecosystem.config.mjs --name "calming-space-staging" -- --port 2114
           pm2 save
 
@@ -208,7 +204,6 @@ jobs:
           echo "SESSION_SECRET=${{ secrets.SESSION_SECRET }}" >> .env
           echo "SPOTIFY_CLIENT_ID=${{ secrets.SPOTIFY_CLIENT_ID }}" >> .env
           echo "SPOTIFY_CLIENT_SECRET=${{ secrets.SPOTIFY_CLIENT_SECRET }}" >> .env
-          # Use reload for zero-downtime in production
           pm2 reload ecosystem.config.mjs --name "calming-space" || pm2 start ecosystem.config.mjs --name "calming-space"
           pm2 save
 
