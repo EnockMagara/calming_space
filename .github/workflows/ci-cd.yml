@@ -126,7 +126,9 @@ jobs:
         username: ${{ secrets.SERVER_USERNAME }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
-          sleep 15
+          echo "Checking if port 2114 is in use..."
+          lsof -i :2114 || echo "Port 2114 is not in use"
+          sleep 30
           pm2 status calming-space-staging | grep online || (echo "Staging application is not running" && exit 1)
           curl --retry 3 --retry-delay 5 --fail http://localhost:2114/ || (echo "Staging application is not responding" && exit 1)
 
@@ -216,6 +218,8 @@ jobs:
         username: ${{ secrets.SERVER_USERNAME }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
-          sleep 5
+          echo "Checking if port 2113 is in use..."
+          lsof -i :2113 || echo "Port 2113 is not in use"
+          sleep 30
           pm2 status calming-space | grep online || (echo "Application is not running, rolling back..." && cp -r /root/calming_space_backup /root/calming_space && pm2 restart ecosystem.config.cjs && exit 1)
           curl --retry 3 --retry-delay 5 --fail http://localhost:2113/ || (echo "Application is not responding, rolling back..." && cp -r /root/calming_space_backup /root/calming_space && pm2 restart ecosystem.config.cjs && exit 1)
