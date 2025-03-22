@@ -70,8 +70,8 @@ console.log('Setting up static files...');
 app.use(express.static('public'));
 console.log('Static files setup complete');
 
-// Start server only if running directly (not in test environment)
-if (!isTestEnvironment && process.argv[1] === fileURLToPath(import.meta.url)) {
+// Start server only if not in test environment
+if (!isTestEnvironment) {
   const port = process.env.PORT || 2113; // Use PORT from environment, default to 2113
   console.log(`Starting server on port ${port}...`);
   app.listen(port, '0.0.0.0', () => {
