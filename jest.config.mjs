@@ -1,11 +1,13 @@
 export default {
   testEnvironment: 'node',
-  transform: {
-    '^.+\\.m?js$': 'babel-jest'
+  transform: {},
+  extensionsToTreatAsEsm: [],
+  moduleNameMapper: {
+    '^(\\.{1,2}/.*)\\.js$': '$1'
   },
-  moduleFileExtensions: ['js', 'mjs'],
   testMatch: ['**/__tests__/**/*.mjs', '**/?(*.)+(spec|test).mjs'],
   transformIgnorePatterns: [
     '/node_modules/(?!(@babel/runtime)/)'
-  ]
-}; 
+  ],
+  cacheDirectory: '~/.npm/jest-cache' // Specify cache directory for CI
+};

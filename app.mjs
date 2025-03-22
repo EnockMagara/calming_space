@@ -5,7 +5,7 @@ import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import { initialize } from './src/config/passport-config.mjs';
 import authRoutes from './src/routes/auth.mjs';
-import connectDB from './src/config/db.mjs';
+import { connectDB } from './src/config/db.mjs';
 import dashboardRoutes from './src/routes/dashboard.mjs';
 import musicRoutes from './src/routes/music.mjs';
 import adminRoutes from './src/routes/admin.mjs';
@@ -15,7 +15,10 @@ import { fileURLToPath } from 'url';
 dotenv.config();
 
 // Connect to the database
-connectDB();
+const isTestEnvironment = process.env.NODE_ENV === 'test';
+if (!isTestEnvironment) {
+  connectDB();
+}
 
 const app = express();
 
@@ -53,8 +56,8 @@ app.set('view engine', 'ejs');
 // Serve static files from the 'public' directory
 app.use(express.static('public'));
 
-// Only start the server if this file is run directly
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+// Start server only if running directly (not in test environment)
+if (!isTestEnvironment && process.argv[1] === fileURLToPath(import.meta.url)) {
   app.listen(2113, '0.0.0.0', () => {
     console.log('Server running on port 2113');
   });

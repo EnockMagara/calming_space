@@ -21,13 +21,21 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-        
+        cache: 'npm' # Cache npm dependencies automatically
+
+    - name: Cache Jest results
+      uses: actions/cache@v3
+      with:
+        path: ~/.npm/jest-cache
+        key: ${{ runner.os }}-jest-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-jest-
+
     - name: Install dependencies
       run: npm ci
       
     - name: Run tests
-      run: npm test
+      run: npm test -- --cache # Enable Jest caching
       env:
         MONGODB_URI: ${{ secrets.MONGODB_URI }}
         SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
@@ -77,4 +85,4 @@ jobs:
           echo "SPOTIFY_CLIENT_SECRET=${{ secrets.SPOTIFY_CLIENT_SECRET }}" >> .env
           
           # Start/Restart the application with PM2
-          pm2 restart app.mjs || pm2 start app.mjs --name "app" 
+          pm2 restart app.mjs || pm2 start app.mjs --name "app"
