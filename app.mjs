@@ -50,7 +50,7 @@ app.get('/', (req, res) => {
 });
 
 // Set the views directory and view engine
-app.set('views', './src/views'); // Correct path to your views directory
+app.set('views', './src/views');
 app.set('view engine', 'ejs');
 
 // Serve static files from the 'public' directory
@@ -58,8 +58,9 @@ app.use(express.static('public'));
 
 // Start server only if running directly (not in test environment)
 if (!isTestEnvironment && process.argv[1] === fileURLToPath(import.meta.url)) {
-  app.listen(2113, '0.0.0.0', () => {
-    console.log('Server running on port 2113');
+  const port = process.env.PORT || 2113; // Use PORT from environment, default to 2113
+  app.listen(port, '0.0.0.0', () => {
+    console.log(`Server running on port ${port}`);
   });
 }
 

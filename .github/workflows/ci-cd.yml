@@ -114,8 +114,12 @@ jobs:
           echo "SESSION_SECRET=${{ secrets.SESSION_SECRET }}" >> .env
           echo "SPOTIFY_CLIENT_ID=${{ secrets.SPOTIFY_CLIENT_ID }}" >> .env
           echo "SPOTIFY_CLIENT_SECRET=${{ secrets.SPOTIFY_CLIENT_SECRET }}" >> .env
-          pm2 reload ecosystem.config.mjs --name "calming-space-staging" -- --port 2114 || pm2 start ecosystem.config.mjs --name "calming-space-staging" -- --port 2114
+          # Set NODE_ENV to staging to use env_staging in ecosystem.config.mjs
+          export NODE_ENV=staging
+          pm2 reload ecosystem.config.mjs --name "calming-space-staging" || pm2 start ecosystem.config.mjs --name "calming-space-staging"
           pm2 save
+          echo "Recent PM2 logs for calming-space-staging:"
+          pm2 logs calming-space-staging --lines 20 || echo "Failed to retrieve PM2 logs"
 
     - name: Health check (staging)
       uses: appleboy/ssh-action@v1
@@ -124,7 +128,7 @@ jobs:
         username: ${{ secrets.SERVER_USERNAME }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
-          sleep 5
+          sleep 15
           pm2 status calming-space-staging | grep online || (echo "Staging application is not running" && exit 1)
           curl --retry 3 --retry-delay 5 --fail http://localhost:2114/ || (echo "Staging application is not responding" && exit 1)
 
