@@ -12,7 +12,13 @@
   <!-- Header with logo -->
   <header class="header">
     <img src="/images/lotus-logo.png" alt="Logo" class="logo">
-    <h1 class="title">Welcome to Your Sanctuary</h1>
+    <h1 class="title">
+      <% if (username) { %>
+        Welcome to Your Sanctuary, <%= username %>!
+      <% } else { %>
+        Welcome to Your Sanctuary
+      <% } %>
+    </h1>
     <div class="auth-links">
       <% if (username) { %>
         <form action="/logout" method="POST">

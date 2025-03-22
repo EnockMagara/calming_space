@@ -1,0 +1,80 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run tests
+      run: npm test
+      env:
+        MONGODB_URI: ${{ secrets.MONGODB_URI }}
+        SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+        SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
+        SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Deploy to server
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USERNAME }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          # Create app directory if it doesn't exist
+          mkdir -p /root/calming_space
+          
+          # Navigate to app directory
+          cd /root/calming_space
+          
+          # Clone/pull the repository
+          if [ -d ".git" ]; then
+            git pull origin main
+          else
+            git clone https://github.com/enockmagara/calming_space.git .
+          fi
+          
+          # Install dependencies
+          npm install
+          
+          # Install PM2 globally if not installed
+          if ! command -v pm2 &> /dev/null; then
+            npm install -g pm2
+          fi
+          
+          # Create/Update environment variables
+          echo "MONGODB_URI=${{ secrets.MONGODB_URI }}" > .env
+          echo "SESSION_SECRET=${{ secrets.SESSION_SECRET }}" >> .env
+          echo "SPOTIFY_CLIENT_ID=${{ secrets.SPOTIFY_CLIENT_ID }}" >> .env
+          echo "SPOTIFY_CLIENT_SECRET=${{ secrets.SPOTIFY_CLIENT_SECRET }}" >> .env
+          
+          # Start/Restart the application with PM2
+          pm2 restart app.mjs || pm2 start app.mjs --name "app" 
