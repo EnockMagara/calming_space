@@ -1,0 +1,200 @@
+name: Deploy Calming Space
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Checkout the latest code from the repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Node.js environment
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: npm install
+
+      # Step 4: Setup SSH
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      # Step 5: Add host key
+      - name: Add host key
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+
+      # Step 6: Create .env file from secrets
+      - name: Create .env file
+        run: |
+          echo "MONGODB_URI=${{ secrets.MONGODB_URI }}" > .env
+          echo "PORT=2113" >> .env
+          echo "SESSION_SECRET=${{ secrets.SESSION_SECRET }}" >> .env
+          echo "SPOTIFY_CLIENT_ID=${{ secrets.SPOTIFY_CLIENT_ID }}" >> .env
+          echo "SPOTIFY_CLIENT_SECRET=${{ secrets.SPOTIFY_CLIENT_SECRET }}" >> .env
+          echo "DOMAIN_NAME=${{ secrets.DOMAIN_NAME }}" >> .env
+
+      # Step 7: Create necessary scripts
+      - name: Create deployment script
+        run: |
+          cat > deploy.sh << 'EOL'
+          #!/bin/bash
+
+          # Calming Space Deployment Script
+          # This script sets up the Calming Space application on a production server
+
+          # Exit on error
+          set -e
+
+          # Configuration variables
+          APP_DIR="$PWD"
+          LOG_DIR="/var/log/calming-space"
+          SERVICE_NAME="calming-space"
+
+          echo "=== Calming Space Deployment ==="
+          echo "Deploying to: $APP_DIR"
+
+          # Create log directory if it doesn't exist
+          if [ ! -d "$LOG_DIR" ]; then
+              echo "Creating log directory: $LOG_DIR"
+              sudo mkdir -p $LOG_DIR
+              sudo chown -R $(whoami):$(whoami) $LOG_DIR
+          fi
+
+          # Install dependencies
+          echo "Installing dependencies..."
+          npm install
+
+          # Create the systemd service file
+          echo "Creating systemd service file..."
+          cat > /tmp/calming-space.service << EOFSERVICE
+          [Unit]
+          Description=Calming Space Meditation Application
+          After=network.target mongodb.service
+
+          [Service]
+          User=$(whoami)
+          WorkingDirectory=$APP_DIR
+          ExecStart=/usr/bin/node $APP_DIR/app.mjs
+          Restart=always
+          RestartSec=10
+          StandardOutput=append:$LOG_DIR/stdout.log
+          StandardError=append:$LOG_DIR/stderr.log
+          Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+          # Environment variables will be loaded from .env file in the app
+
+          [Install]
+          WantedBy=multi-user.target
+          EOFSERVICE
+
+          # Install the service file
+          echo "Installing systemd service..."
+          sudo mv /tmp/calming-space.service /etc/systemd/system/$SERVICE_NAME.service
+          sudo systemctl daemon-reload
+
+          # Restart the Calming Space service
+          echo "Restarting Calming Space service..."
+          sudo systemctl restart $SERVICE_NAME.service
+          sudo systemctl enable $SERVICE_NAME.service
+
+          # Check the service status
+          echo "Service status:"
+          sudo systemctl status $SERVICE_NAME.service --no-pager
+
+          echo ""
+          echo "=== Deployment Complete ==="
+          echo ""
+          echo "Access the application at:"
+          echo "  http://$(hostname -I | awk '{print $1}'):2113/"
+          echo "  https://$DOMAIN_NAME (if HTTPS setup completed successfully)"
+          echo ""
+          echo "Check logs at:"
+          echo "  $LOG_DIR/stdout.log"
+          echo "  $LOG_DIR/stderr.log"
+          echo ""
+          echo "Service management commands:"
+          echo "  sudo systemctl status $SERVICE_NAME.service  # Check status"
+          echo "  sudo systemctl restart $SERVICE_NAME.service # Restart service"
+          echo "  sudo systemctl stop $SERVICE_NAME.service    # Stop service"
+          echo "  sudo journalctl -u $SERVICE_NAME.service     # View service logs"
+          EOL
+
+          chmod +x deploy.sh
+
+      # Step 8: Create service file
+      - name: Create service file
+        run: |
+          cat > calming-space.service << 'EOL'
+          [Unit]
+          Description=Calming Space Meditation Application
+          After=network.target mongodb.service
+
+          [Service]
+          User=root
+          WorkingDirectory=/root/calming_space
+          ExecStart=/usr/bin/node /root/calming_space/app.mjs
+          Restart=always
+          RestartSec=10
+          StandardOutput=append:/var/log/calming-space/stdout.log
+          StandardError=append:/var/log/calming-space/stderr.log
+          Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+          [Install]
+          WantedBy=multi-user.target
+          EOL
+
+      # Step 9: Deploy to Server
+      - name: Deploy to Server
+        env:
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_USER: ${{ secrets.SERVER_USERNAME }}
+          DEPLOY_PATH: "/root/calming_space"
+          EMAIL: ${{ secrets.EMAIL || 'admin@example.com' }}
+          DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
+        run: |
+          # Create deploy directory structure
+          ssh $SERVER_USER@$SERVER_HOST "mkdir -p $DEPLOY_PATH"
+
+          # Copy application files
+          rsync -avz --exclude 'node_modules' --exclude '.git' ./ $SERVER_USER@$SERVER_HOST:$DEPLOY_PATH/
+
+          # Copy configuration files
+          scp deploy.sh setup_https_calmingspace.sh calming-space.service .env $SERVER_USER@$SERVER_HOST:$DEPLOY_PATH/
+
+          # Make scripts executable
+          ssh $SERVER_USER@$SERVER_HOST "chmod +x $DEPLOY_PATH/deploy.sh $DEPLOY_PATH/setup_https_calmingspace.sh"
+
+          # Run deployment script on server
+          ssh $SERVER_USER@$SERVER_HOST "cd $DEPLOY_PATH && bash deploy.sh"
+
+          # Set up HTTPS (requires sudo)
+          ssh $SERVER_USER@$SERVER_HOST "cd $DEPLOY_PATH && sed -i 's/EMAIL=.*/EMAIL=\"$EMAIL\"/' setup_https_calmingspace.sh"
+          ssh $SERVER_USER@$SERVER_HOST "cd $DEPLOY_PATH && sed -i 's/DOMAIN=.*/DOMAIN=\"$DOMAIN_NAME\"/' setup_https_calmingspace.sh"
+          ssh $SERVER_USER@$SERVER_HOST "cd $DEPLOY_PATH && echo \"Setting up HTTPS requires sudo. If it doesn't work automatically, run 'sudo bash setup_https_calmingspace.sh' manually on the server.\""
+          ssh $SERVER_USER@$SERVER_HOST "cd $DEPLOY_PATH && sudo -n bash setup_https_calmingspace.sh || echo 'Please run setup_https_calmingspace.sh manually with sudo permissions'"
+
+      # Step 10: Verify deployment
+      - name: Verify deployment
+        env:
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_USER: ${{ secrets.SERVER_USERNAME }}
+          DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
+        run: |
+          # Wait for service to start
+          sleep 10
+          # Check if service is running
+          ssh $SERVER_USER@$SERVER_HOST "systemctl is-active calming-space.service || echo 'Service not running'"
+          echo "Deployment complete! Your application should be available at:"
+          echo "  http://$SERVER_HOST:2113"
+          echo "  https://$DOMAIN_NAME (if HTTPS setup completed successfully)" 
