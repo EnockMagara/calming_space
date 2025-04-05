@@ -10,6 +10,7 @@
   <% if (isSpotifyAuthenticated && typeof accessToken !== 'undefined') { %>
     <meta name="spotify-token" content="<%= accessToken %>">
   <% } %>
+  <base href="<%= baseUrl %>/">
 </head>
 <body>
   <!-- Header with logo -->
@@ -24,12 +25,12 @@
     </h1>
     <div class="auth-links">
       <% if (username) { %>
-        <form action="/logout" method="POST">
+        <form action="<%= baseUrl %>/logout" method="POST">
           <button type="submit" class="auth-button logout-button"><i class="fas fa-sign-out-alt"></i> Logout</button>
         </form>
       <% } else { %>
-        <a href="/login" class="auth-button login-button">Login</a>
-        <a href="/register" class="auth-button register-button">Register</a>
+        <a href="<%= baseUrl %>/login" class="auth-button login-button">Login</a>
+        <a href="<%= baseUrl %>/register" class="auth-button register-button">Register</a>
       <% } %>
     </div>
     <div class="menu">
@@ -133,12 +134,12 @@
             <% }) %>
           </div>
         <% } else { %>
-          <a href="/auth/spotify" class="spotify-login-button">
+          <a href="<%= baseUrl %>/auth/spotify" class="spotify-login-button">
             <i class="fab fa-spotify"></i> Add Spotify Tracks
           </a>
         <% } %>
       <% } else { %>
-        <p>Please <a href="/login">log in</a> to add Spotify tracks.</p>
+        <p>Please <a href="<%= baseUrl %>/login">log in</a> to add Spotify tracks.</p>
       <% } %>
     </section>
   </main>

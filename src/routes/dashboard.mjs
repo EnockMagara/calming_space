@@ -3,8 +3,12 @@ import { checkAuthenticated } from '../authMiddleware.mjs';
 import { Music } from '../models/music.mjs';
 import fetch from 'node-fetch'; 
 import passport from 'passport';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const router = express.Router();
+const baseUrl = process.env.DOMAIN_NAME ? `https://${process.env.DOMAIN_NAME}` : `http://localhost:${process.env.PORT || 2113}`;
 
 // Dashboard route
 router.get('/dashboard', async (req, res) => {
@@ -46,7 +50,15 @@ router.get('/dashboard', async (req, res) => {
       }
     }
 
-    res.render('dashboard.ejs', { username, userRole, musicList, spotifyTracks, isSpotifyAuthenticated, accessToken });
+    res.render('dashboard.ejs', { 
+      username, 
+      userRole, 
+      musicList, 
+      spotifyTracks, 
+      isSpotifyAuthenticated, 
+      accessToken,
+      baseUrl
+    });
   } catch (error) {
     console.error('Error loading dashboard:', error);
     res.status(500).send('Error loading dashboard');
