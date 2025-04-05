@@ -75,6 +75,7 @@ app.use(passport.session());
 app.use((req, res, next) => {
   // Make baseUrl available to all templates
   res.locals.baseUrl = baseUrl;
+  console.log(`Setting baseUrl in locals: ${baseUrl}`);
   next();
 });
 

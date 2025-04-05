@@ -50,6 +50,9 @@ router.get('/dashboard', async (req, res) => {
       }
     }
 
+    // Ensure baseUrl is defined and logged
+    console.log(`Dashboard route rendering with baseUrl: ${baseUrl}`);
+
     res.render('dashboard.ejs', { 
       username, 
       userRole, 
@@ -57,7 +60,7 @@ router.get('/dashboard', async (req, res) => {
       spotifyTracks, 
       isSpotifyAuthenticated, 
       accessToken,
-      baseUrl
+      baseUrl // Explicitly pass baseUrl
     });
   } catch (error) {
     console.error('Error loading dashboard:', error);
