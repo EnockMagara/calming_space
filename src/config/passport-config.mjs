@@ -26,8 +26,10 @@ export function initialize(passport) {
     }
   });
 
-  const port = process.env.PORT || 2113;
-  const callbackURL = `https://calmingspace.duckdns.org/auth/spotify/callback`;
+  // Use the environment variable for callback URL if available, otherwise use the default
+  const callbackURL = process.env.SPOTIFY_CALLBACK_URL || `https://calmingspace.duckdns.org/auth/spotify/callback`;
+  
+  console.log('Using Spotify callback URL:', callbackURL);
 
   passport.use(new SpotifyStrategy({
     clientID: process.env.SPOTIFY_CLIENT_ID,

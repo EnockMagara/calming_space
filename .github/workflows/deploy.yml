@@ -44,6 +44,7 @@ jobs:
           echo "SPOTIFY_CLIENT_ID=${{ secrets.SPOTIFY_CLIENT_ID }}" >> .env
           echo "SPOTIFY_CLIENT_SECRET=${{ secrets.SPOTIFY_CLIENT_SECRET }}" >> .env
           echo "DOMAIN_NAME=${{ secrets.DOMAIN_NAME }}" >> .env
+          echo "SPOTIFY_CALLBACK_URL=https://${{ secrets.DOMAIN_NAME }}/auth/spotify/callback" >> .env
 
       # Step 7: Create necessary scripts
       - name: Create deployment script
