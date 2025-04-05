@@ -149,82 +149,227 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize the timer display
   updatePieChart();
 
-  // Track selection highlight (unchanged)
+  // Track selection highlight
   document.querySelectorAll('.track').forEach(track => {
-    track.addEventListener('click', () => {
-      document.querySelectorAll('.track').forEach(t => t.classList.remove('selected'));
-      track.classList.add('selected');
+    track.addEventListener('click', (event) => {
+      // Only apply highlight if we're not clicking on a button inside the track
+      if (!event.target.closest('button')) {
+        document.querySelectorAll('.track').forEach(t => t.classList.remove('selected'));
+        track.classList.add('selected');
+      }
     });
   });
 
-  // Spotify player initialization (unchanged)
-  const token = '<%= accessToken %>';
-  let currentTrackUri = null;
-  let player;
-
-  function initializePlayer() {
-    player = new Spotify.Player({
-      name: 'Web Playback SDK',
-      getOAuthToken: cb => { cb(token); }
-    });
-
-    player.connect().then(success => {
-      if (success) {
-        console.log('The Web Playback SDK successfully connected to Spotify!');
-        player.addListener('ready', ({ device_id }) => {
-          console.log('Ready with Device ID', device_id);
-          fetch(`https://api.spotify.com/v1/me/player`, {
-            method: 'PUT',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ device_ids: [device_id], play: false })
-          }).catch(error => console.error('Error setting active device:', error));
+  // Spotify player initialization
+  // Get the token from a data attribute instead of template variable
+  let spotifyAccessToken = null;
+  const spotifyButtons = document.querySelectorAll('.play-spotify-button');
+  
+  // Only initialize Spotify if we have play buttons (user is authenticated)
+  if (spotifyButtons.length > 0) {
+    // Try to get the token from a meta tag or data attribute
+    const tokenElement = document.querySelector('meta[name="spotify-token"]');
+    if (tokenElement) {
+      spotifyAccessToken = tokenElement.getAttribute('content');
+    }
+    
+    // If we still don't have a token, try fetching it from the server
+    if (!spotifyAccessToken) {
+      fetch('/auth/spotify/token')
+        .then(response => response.json())
+        .then(data => {
+          if (data.accessToken) {
+            spotifyAccessToken = data.accessToken;
+            initializeSpotifyPlayer();
+          } else {
+            showSpotifyError("Could not retrieve Spotify access token");
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching Spotify token:', error);
+          showSpotifyError("Error connecting to Spotify");
         });
-      }
-    });
+    } else {
+      initializeSpotifyPlayer();
+    }
+  }
 
-    player.addListener('not_ready', ({ device_id }) => {
-      console.log('Device ID has gone offline', device_id);
+  let currentTrackUri = null;
+  let player = null;
+  let deviceId = null;
+
+  function showSpotifyError(message) {
+    const spotifySection = document.querySelector('.spotify-tracks');
+    const errorMsg = document.createElement('p');
+    errorMsg.classList.add('spotify-error');
+    errorMsg.style.color = 'red';
+    errorMsg.textContent = message;
+    
+    // Remove any existing error messages
+    const existingErrors = spotifySection.querySelectorAll('.spotify-error');
+    existingErrors.forEach(el => el.remove());
+    
+    spotifySection.appendChild(errorMsg);
+  }
+
+  function initializeSpotifyPlayer() {
+    if (!spotifyAccessToken) {
+      showSpotifyError("Spotify access token not available");
+      return;
+    }
+
+    window.onSpotifyWebPlaybackSDKReady = () => {
+      player = new Spotify.Player({
+        name: 'Calming Space Web Player',
+        getOAuthToken: cb => { cb(spotifyAccessToken); },
+        volume: 0.5
+      });
+
+      // Error handling
+      player.addListener('initialization_error', ({ message }) => {
+        console.error('Failed to initialize Spotify player:', message);
+        showSpotifyError("Spotify player failed to initialize");
+      });
+
+      player.addListener('authentication_error', ({ message }) => {
+        console.error('Failed to authenticate with Spotify:', message);
+        showSpotifyError("Spotify authentication error. Please try logging in again.");
+      });
+
+      player.addListener('account_error', ({ message }) => {
+        console.error('Failed to validate Spotify account:', message);
+        showSpotifyError("Spotify account error. Premium subscription may be required.");
+      });
+
+      player.addListener('playback_error', ({ message }) => {
+        console.error('Failed to perform playback:', message);
+        showSpotifyError("Playback error: " + message);
+      });
+
+      // Ready
+      player.addListener('ready', ({ device_id }) => {
+        console.log('Ready with Device ID', device_id);
+        deviceId = device_id;
+        
+        // Transfer playback to this device
+        fetch('https://api.spotify.com/v1/me/player', {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${spotifyAccessToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ device_ids: [device_id], play: false })
+        }).then(() => {
+          console.log('Transferred playback to this device');
+          setupSpotifyButtonListeners();
+        }).catch(error => {
+          console.error('Error transferring playback:', error);
+          showSpotifyError("Could not connect to Spotify. Please refresh the page.");
+        });
+      });
+
+      // Not Ready
+      player.addListener('not_ready', ({ device_id }) => {
+        console.log('Device ID has gone offline', device_id);
+        deviceId = null;
+        showSpotifyError("Spotify player disconnected. Please refresh the page.");
+      });
+
+      // Listen for playback state changes to update UI
+      player.addListener('player_state_changed', state => {
+        if (!state) return;
+        
+        console.log('Player state changed:', state);
+        const currentTrack = state.track_window.current_track;
+        const isPaused = state.paused;
+        
+        // Update button states based on what's actually playing
+        spotifyButtons.forEach(button => {
+          const uri = button.getAttribute('data-uri');
+          const icon = button.querySelector('i');
+          
+          if (currentTrack && uri === currentTrack.uri && !isPaused) {
+            icon.classList.remove('fa-play', 'fa-spinner', 'fa-spin');
+            icon.classList.add('fa-pause');
+          } else {
+            icon.classList.remove('fa-pause', 'fa-spinner', 'fa-spin');
+            icon.classList.add('fa-play');
+          }
+        });
+      });
+
+      // Connect to the player
       player.connect().then(success => {
-        if (success) {
-          console.log('Reconnected to Spotify!');
+        if (!success) {
+          showSpotifyError("Failed to connect to Spotify");
         }
       });
-    });
+    };
 
-    document.querySelectorAll('.play-spotify-button').forEach(button => {
+    // Manually trigger the SDK ready event if it's already loaded
+    if (window.Spotify && window.Spotify.Player) {
+      window.onSpotifyWebPlaybackSDKReady();
+    }
+  }
+
+  function setupSpotifyButtonListeners() {
+    spotifyButtons.forEach(button => {
       button.addEventListener('click', () => {
         const uri = button.getAttribute('data-uri');
-        const isPlaying = button.textContent === 'Pause';
+        const buttonIcon = button.querySelector('i');
+        const isPlaying = buttonIcon.classList.contains('fa-pause');
+
+        // First reset all buttons to play
+        spotifyButtons.forEach(btn => {
+          const icon = btn.querySelector('i');
+          icon.classList.remove('fa-pause');
+          icon.classList.add('fa-play');
+        });
 
         if (isPlaying) {
+          // Pause the current track
           player.pause().then(() => {
-            button.textContent = 'Play';
+            console.log('Paused track');
             currentTrackUri = null;
-          }).catch(error => console.error('Error pausing track:', error));
+          }).catch(error => {
+            console.error('Error pausing track:', error);
+            showSpotifyError("Failed to pause playback");
+          });
         } else {
-          if (currentTrackUri && currentTrackUri !== uri) {
-            player.pause().then(() => {
-              document.querySelector(`button[data-uri="${currentTrackUri}"]`).textContent = 'Play';
-            }).catch(error => console.error('Error pausing current track:', error));
+          // Play the selected track
+          if (!deviceId) {
+            showSpotifyError("Spotify player not ready. Please refresh the page.");
+            return;
           }
-          fetch(`https://api.spotify.com/v1/me/player/play`, {
+
+          // Show loading state
+          buttonIcon.classList.remove('fa-play');
+          buttonIcon.classList.add('fa-spinner', 'fa-spin');
+          
+          fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
             method: 'PUT',
             headers: {
-              'Authorization': `Bearer ${token}`,
+              'Authorization': `Bearer ${spotifyAccessToken}`,
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({ uris: [uri] })
-          }).then(() => {
-            button.textContent = 'Pause';
+          }).then(response => {
+            if (!response.ok) {
+              return response.json().then(err => {
+                throw new Error(`Spotify API error: ${err.error?.message || 'Unknown error'}`);
+              });
+            }
+            buttonIcon.classList.remove('fa-spinner', 'fa-spin');
+            buttonIcon.classList.add('fa-pause');
             currentTrackUri = uri;
-          }).catch(error => console.error('Error playing track:', error));
+          }).catch(error => {
+            console.error('Error playing track:', error);
+            buttonIcon.classList.remove('fa-spinner', 'fa-spin');
+            buttonIcon.classList.add('fa-play');
+            showSpotifyError(`Playback error: ${error.message || 'Failed to play track'}`);
+          });
         }
       });
     });
   }
-
-  window.onSpotifyWebPlaybackSDKReady = initializePlayer;
 });

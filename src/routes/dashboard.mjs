@@ -65,6 +65,35 @@ router.get('/api/random-quotes', async (req, res) => {
   }
 });
 
+// Add an API endpoint to get the Spotify token (for fallback)
+router.get('/auth/spotify/token', checkAuthenticated, async (req, res) => {
+  if (!req.user || !req.user.accessToken) {
+    return res.status(401).json({ error: 'Not authenticated with Spotify' });
+  }
+  
+  try {
+    let accessToken = req.user.accessToken;
+    
+    // Check if token is valid by making a test request
+    const testResponse = await fetch('https://api.spotify.com/v1/me', {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`
+      }
+    });
+    
+    // If token expired, refresh it
+    if (testResponse.status === 401 && req.user.refreshToken) {
+      accessToken = await refreshAccessToken(req.user.refreshToken);
+      req.user.accessToken = accessToken;
+    }
+    
+    return res.json({ accessToken });
+  } catch (error) {
+    console.error('Error providing Spotify token:', error);
+    return res.status(500).json({ error: 'Failed to provide Spotify token' });
+  }
+});
+
 async function refreshAccessToken(refreshToken) {
   const response = await fetch('https://accounts.spotify.com/api/token', {
     method: 'POST',
